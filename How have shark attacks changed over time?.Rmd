@@ -1,0 +1,118 @@
+---
+title: "How Have Shark Attacks Changed over Time"
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+# Loading in the Data and Packages
+```{r global, include=FALSE, warning=FALSE, message=FALSE}
+shark_attacks <- read.csv("Shark Dataset.csv")
+
+view(shark_attacks)
+# load packages in 'global' chunk so they can be shared by all users of the dashboard
+library(httr2)
+library(purrr)
+library(tibble)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(shiny)
+library(tidyr)
+library(ggseas) #to use stat_rollapplyr
+
+```
+
+- first reclassify dates (1790-1850, 1850-1900, 1900-1950, 
+- most common location, victim activity, site.category, distance to shore over time, proportion barchart
+- 
+
+
+# cleaning the data
+
+```{r}
+View(shark_attacks)
+view(shark_attacks_timeline)
+shark_attacks$Incident.year
+view(shark_attacks$Victim.age)
+
+
+#adding in means
+shark_attacks <- shark_attacks %>%
+  group_by(Incident.year) %>%
+  mutate(Shark.length.m.mean = mean(Shark.length.m)) %>%
+  mutate(No.sharks.mean = mean(No.sharks)) %>%
+  mutate(Victim.age.mean = mean(Victim.age))
+
+shark_attacks_timeline <- shark_attacks %>%
+  mutate(Victim.age = as.ts(Victim.age)) %>% 
+  mutate(Incident.month = as.character(Incident.month)) %>% 
+  mutate(Incident.year = as.character(Incident.year)) %>%
+ # mutate(Incident.month_year = make_date(year = Incident.year, month=Incident.month)) 
+  unite("Incident.month_year", Incident.month, Incident.year, sep = "/", remove = F) %>% #remove = F, na.rm = T
+  mutate(Incident.month_year = paste0("01/", Incident.month_year),
+         Incident.month_year = as.Date(Incident.month_year, format = "%d/%m/%Y"))
+  
+  mutate(Year = case_when((Incident.year > 1790 & Incident.year <= 1850) ~ "1790-1850",
+                          (Incident.year > 1850 & Incident.year <= 1900) ~ "1850-1900",
+                          (Incident.year > 1900 & Incident.year <= 1950) ~ "1900-1950",
+                          (Incident.year > 1950 & Incident.year <= 2000) ~ "1950-2000",
+                          (Incident.year > 2000 & Incident.year <= 2022) ~ "2000-2022"))
+
+
+```
+
+# Timeline
+
+```{r}
+class(shark_attacks_timeline$Shark.length.m)
+shark_attacks_timeline$Incident.month_year
+#start and stop times
+
+start_time <- as.Date("1900-01-01")
+end_time <- as.Date("2022-03-01")
+
+start.end <- c(start_time,end_time)
+start.end
+
+
+#age 
+ggplot(data = shark_attacks_timeline, aes(x = Incident.month_year, y = Victim.age)) +
+  geom_line()+ 
+  labs(x = "Date", y = "Victim Age") +
+  scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) + 
+  stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
+
+#shark length
+ggplot(data = shark_attacks_timeline, aes(x = Incident.month_year, y = Shark.length.m)) +
+  geom_line()+ 
+  labs(x = "Date", y = "Shark Length (m)") +
+  scale_x_date(date_breaks = "25 years", date_labels = "%m/%Y", limits = start.end) + 
+  stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
+
+#number of sharks
+ggplot(data = shark_attacks_timeline, aes(x = Incident.month_year, y = No.sharks)) +
+  geom_line()+ 
+  labs(x = "Date", y = "Number of Sharks") +
+  scale_x_date(date_breaks = "25 years", date_labels = "%m/%Y", limits = start.end) + 
+  stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+  ylim(c(0,10)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
+
+
+```
+
+
+- figure out the bet way to adjust the x limits
+- things user could change
+  - length of time viewed
+  - y variable
+  - moving average variable
+
+# proportional graph
+
+```{r}
+
+```
+
