@@ -1,5 +1,5 @@
 ---
-title: "How Have Shark Attacks Changed over Time"
+title: "How Have Shark Attacks Changed over Time?"
 output: flexdashboard::flex_dashboard
 runtime: shiny
 ---
@@ -8,7 +8,6 @@ runtime: shiny
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
 shark_attacks <- read.csv("Shark Dataset.csv")
 
-view(shark_attacks)
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
 library(purrr)
