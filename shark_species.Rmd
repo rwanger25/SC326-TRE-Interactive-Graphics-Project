@@ -1,0 +1,332 @@
+---
+title: "shark species page"
+date: "11/24/24"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+runtime: shiny
+
+---
+
+How fatal is this shark?
+=====================================  
+
+```{r global, include=FALSE, warning=FALSE, message=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(tidyverse)
+library(flexdashboard)
+library(dplyr)
+library(plotly)
+library(stringr)
+
+shark <- read.csv("Shark Dataset.csv")
+
+
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput("shark_species_EL", label = "What shark do you see?", 
+            choices =  c("All" = "all",
+                         "White shark" = "white shark",
+                         "Tiger shark" = "tiger shark",
+                         "Bull shark" = "bull shark",
+                         "Whaler shark" = "whaler shark",
+                         "Wobbegong" = "wobbegong",
+                         "Broadnose sevengill shark" = "broadnose sevengill shark",
+                         "Dusky shark" = "dusky shark",
+                         "Bronze whaler shark" = "bronze whaler shark",
+                         "Dogfish" = "dogfish",
+                         "Shortfin mako shark" = "shortfin mako shark",
+                         "School shark" = "school shark",
+                         "Grey reef shark" = "grey reef shark",
+                         "Whitetip reef shark" = "whitetip reef shark",
+                         "Hammerhead shark" = "hammerhead shark ",
+                         "Grey nurse shark" = "grey nurse shark",
+                         "Sevengill shark" = "sevengill shark",
+                         "Galapagos shark" = "galapagos shark",
+                         "Silvertip shark" = "silvertip shark",
+                         "Blind shark" = "blind shark",
+                         "Blacktip reef shark" = "blacktip reef shark",
+                         "Port jackson shark" = "port jackson shark",
+                         "Lemon shark" = "lemon shark"))
+
+selectInput("provoke_EL", label = "Do you provoke the shark?", 
+            choices = c("Yes and No" = "both",
+                        "Yes" = "provoked",
+                        "No" = "unprovoked"))
+```
+
+Data source: Australian Shark-Incident Database
+
+Row
+-----------------------------------------------------------------------
+### Percent Fatal
+
+```{r}
+fatal_percent <- shark %>% 
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>% 
+  group_by(Shark.common.name, Provoked.unprovoked, fatal) %>% 
+  summarize(sum_species = n()) %>% 
+  ungroup()
+
+renderGauge({
+  
+if (input$shark_species_EL == "all") { #if the shark species is all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    fatal_percent_gauge <- fatal_percent %>% 
+      mutate(total_attacks = sum(sum_species),
+             percent_fatal = (sum_species / total_attacks) * 100) %>% 
+      filter(fatal == "fatal") %>% 
+      group_by(total_attacks) %>% 
+      summarize(percent_fatal = sum(percent_fatal))
+
+  } else { # and they either provoke or unprovoke
+    fatal_percent_gauge <- fatal_percent %>% 
+      filter(Provoked.unprovoked == input$provoke_EL) %>% 
+      mutate(total_attacks = sum(sum_species),
+           percent_fatal = (sum_species / total_attacks) * 100) %>% 
+      filter(fatal == "fatal") %>% 
+      group_by(total_attacks) %>% 
+      summarize(percent_fatal = sum(percent_fatal))
+  } 
+} else { # if is is a specific shark species
+  if(input$provoke_EL == "both") { #and they provoke and unprovoke
+    fatal_percent_gauge <- fatal_percent %>% 
+      filter(Shark.common.name == input$shark_species_EL) %>% 
+      mutate(total_attacks = sum(sum_species),
+             percent_fatal = (sum_species / total_attacks) * 100) %>% 
+      filter(fatal == "fatal") %>% 
+      group_by(total_attacks) %>% 
+      summarize(percent_fatal = sum(percent_fatal))
+  } else { # and they either provoke or unprovoke
+    fatal_percent_gauge <- fatal_percent %>% 
+      filter(Provoked.unprovoked == input$provoke_EL, Shark.common.name ==
+               input$shark_species_EL) %>% 
+      mutate(total_attacks = sum(sum_species),
+           percent_fatal = (sum_species / total_attacks) * 100) %>% 
+      filter(fatal == "fatal") %>% 
+        group_by(total_attacks) %>% 
+      summarize(percent_fatal = sum(percent_fatal))
+  } 
+}
+  rate <- fatal_percent_gauge$percent_fatal # assign value 
+  gauge(rate, min = 0, max = 100, symbol = '%', gaugeSectors( # render the gauge
+    success = c(0, 39), warning = c(40, 79), danger = c(80, 100)
+  ))
+})
+```
+
+### Number of Attacks in this Situation
+```{r}
+fatal_percent <- shark %>% 
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>% 
+  group_by(Shark.common.name, Provoked.unprovoked, fatal) %>% 
+  summarize(sum_species = n()) %>% 
+  ungroup()
+
+renderValueBox({
+  
+  if (input$shark_species_EL == "all") { #if the shark species is all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } else { # and they either provoke or unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(Provoked.unprovoked == input$provoke_EL) %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } 
+} else { # if the shark species is not all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(Shark.common.name == input$shark_species_EL) %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } else { # and they either provoke or unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(Provoked.unprovoked == input$provoke_EL, Shark.common.name ==
+               input$shark_species_EL) %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } 
+}
+  attacks <- as.character(fatal_percent_value$total_attacks) #assign value
+  valueBox(attacks, # render the valuebox
+           icon = "ion-alert-circled",
+           color = "navy")
+})
+```
+
+### Number of Deaths in this Situation
+```{r}
+
+fatal_percent <- shark %>% 
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>% 
+  group_by(Shark.common.name, Provoked.unprovoked, fatal) %>% 
+  summarize(sum_species = n()) %>% 
+  ungroup() %>% 
+  filter( Shark.common.name != "") 
+
+renderValueBox({
+  
+  if (input$shark_species_EL == "all") { #if the shark species is all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(fatal == "fatal") %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } else { # and they either provoke or unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(Provoked.unprovoked == input$provoke_EL) %>% 
+      filter(fatal == "fatal") %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } 
+} else { # if the shark species is not all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(Shark.common.name == input$shark_species_EL) %>% 
+      filter(fatal == "fatal") %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } else { # and they either provoke or unprovoke
+    fatal_percent_value <- fatal_percent %>% 
+      filter(Provoked.unprovoked == input$provoke_EL, Shark.common.name ==
+               input$shark_species_EL) %>% 
+      filter(fatal == "fatal") %>% 
+      mutate(total_attacks = sum(sum_species)) %>% 
+      summarize(total_attacks = mean(total_attacks))
+  } 
+}
+  deaths <- fatal_percent_value$total_attacks #assign value
+  valueBox(deaths, # render the valuebox
+           icon = "ion-alert-circled",
+           color = "maroon")
+})
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Plots
+
+```{r}
+  shark_bubble <- shark %>%
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>%
+  group_by(Shark.common.name, Provoked.unprovoked, fatal) %>%
+  summarize(attack_species_provoke_fatal = n()) %>%
+  mutate(species_provoke = paste(Shark.common.name, Provoked.unprovoked, sep=" ")) %>%
+  group_by(Shark.common.name, Provoked.unprovoked) %>%
+  mutate(attack_species_provoke = sum(attack_species_provoke_fatal)) %>%
+  group_by(Shark.common.name, fatal) %>%
+  mutate(attack_species_fatal = sum(attack_species_provoke_fatal)) %>%
+  group_by(Shark.common.name) %>%
+  mutate(attack_species = sum(attack_species_provoke_fatal), # all attacks by species
+         all_percent = ifelse(fatal == "fatal", attack_species_fatal / attack_species, 0), # calculating the percent fatal for all
+         provoke_percent = ifelse(fatal == "fatal", attack_species_provoke_fatal / attack_species_provoke, 0)) %>%
+  filter( Shark.common.name != "") %>%
+  mutate(Shark.common.name = str_to_title(Shark.common.name))
+
+
+renderPlotly({ #going into the if statements
+
+  if (input$shark_species_EL == "all") { #if the shark species is all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    
+    shark_final <- shark_bubble %>% 
+  group_by(Shark.common.name) %>% #only grouping by shark species
+  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
+    
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
+  geom_point() +
+  scale_size(range = c(1, 4), name="Number of Attacks)") +
+  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_x_log10() +
+  labs(x = "Number of Attacks per Species (log10 scale)",
+       y = "Shark Common Names",
+       color = "Percent fatality",
+       title = "Which Shark Species Attack is Most Common and Fatal?")
+
+ggplotly(bubble, tooltip="text") #plotly graph
+
+  } else { # and they either provoke or unprovoke
+    
+    shark_final <- shark_bubble %>%
+  group_by(Shark.common.name, Provoked.unprovoked) %>%
+  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
+        filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
+    
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
+  geom_point() +
+  scale_size(range = c(1, 4), name="Number of Attacks)") +
+  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_x_log10() +
+  labs(x = "Number of Attacks per Species (log10 scale)",
+       y = "Shark Common Names",
+       color = "Percent fatality",
+       title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL))
+
+ggplotly(bubble, tooltip="text") #plotly graph
+
+  } 
+} else { # if the shark species is not all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+
+shark_year <- shark %>% 
+  group_by(Incident.year, Shark.common.name, Provoked.unprovoked) %>% 
+  filter( Shark.common.name != "") %>% 
+  summarize(attack_count = n()) %>% 
+  filter(Shark.common.name == input$shark_species_EL)
+
+ggplot(shark_year, aes(x = Incident.year, attack_count)) +
+  geom_line( color = "steelblue") +
+  geom_point( color = "steelblue", size = 1 ) +
+  geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
+  labs(title = paste("How has the ", input$shark_species_EL, " attacks changed with time?"),
+       x = "Time (years)",
+       y = "Number of attacks") +
+  theme(legend.position="none")
+    
+  } else { # and they either provoke or unprovoke
+
+shark_year <- shark %>% 
+  group_by(Incident.year, Shark.common.name, Provoked.unprovoked) %>% 
+  filter( Shark.common.name != "") %>% 
+  summarize(attack_count = n()) %>% 
+  filter(Shark.common.name == input$shark_species_EL, Provoked.unprovoked == input$provoke_EL)
+
+ggplot(shark_year, aes(x = Incident.year, attack_count)) +
+  geom_line( color = "steelblue") + 
+  geom_point( color = "steelblue", size = 1) +
+  geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) + 
+  labs(title = paste("How has the", input$provoke_EL, input$shark_species_EL, "attacks changed with time?"),
+       x = "Time (years)",
+       y = "Number of attacks") +
+  theme(legend.position="none")
+    
+  } 
+}
+
+
+})
+```
+
+
+Page 2
+=====================================  
+
+Row
+-----------------------------------------------------------------------
+
+Another sidebar, for interaction controls...
+
+Row
+-----------------------------------------------------------------------
+
+Another area, for interactive graphs and text boxes...
