@@ -4,15 +4,20 @@ output: flexdashboard::flex_dashboard
 runtime: shiny
 ---
 
-## Actually running and deploying the app
+
 ```{r}
+## Actually running and deploying the app
+
 #running the demo app
 #runApp()
 
 ```
 
-# Loading in the Data and Packages
+
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
+
+# Loading in the Data and Packages
+
 shark_attacks <- read.csv("Shark Dataset.csv")
 
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
@@ -28,14 +33,10 @@ library(ggseas) #to use stat_rollapplyr
 
 ```
 
-- first reclassify dates (1790-1850, 1850-1900, 1900-1950, 
-- most common location, victim activity, site.category, distance to shore over time, proportion barchart
-- 
-
-
-# cleaning the data
 
 ```{r}
+
+# cleaning the data
 
 #adding in means
 shark_attacks <- shark_attacks %>%
@@ -88,9 +89,10 @@ shark_attacks <- shark_attacks %>%
 
 
 
+```{r}
+
 # computing proportions individually
 
-```{r}
 #individually
 
 #Victim.injury
@@ -165,15 +167,16 @@ shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the 
          upper_Injury.severity = proportion_Injury.severity + 1.96 * std_error_Injury.severity) 
 
 
-shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the cereal data.frame
-  filter(Injury.severity != "") %>%
-  group_by(Year, Injury.severity) %>%  #  group by the year variable
-  summarise(count_Injury.severity = n(),
-            total_Injury.severity = sum(count_Injury.severity),  
-            proportion_Injury.severity = count_Injury.severity / total_Injury.severity,
-            std_error_Injury.severity = sqrt(proportion_Injury.severity * (1-proportion_Injury.severity) / total_Injury.severity), 
-            lower_Injury.severity = proportion_Injury.severity - 1.96 * std_error_Injury.severity,
-            upper_Injury.severity = proportion_Injury.severity + 1.96 * std_error_Injury.severity) 
+plot <- ggplot(data = shark_attacks_proportions_Injury.severity, aes(x = Year, y = proportion_Injury.severity, fill = Injury.severity)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "Proportion",
+       fill = "Injury Severity",
+       title = "Proportion of Shark Attack Injury Severities Across Time") 
+
+
+ plot <- plot + geom_errorbar(aes(ymin = lower_Injury.severity, ymax = upper_Injury.severity), color = "red", position = "dodge")
+
+
 
 ```
 
@@ -201,12 +204,33 @@ dataframe <- reactive({switch(input$response_var,
 
 
 renderPlot({
-  ggplot(dataframe(), aes_string(y = paste0("proportion_", input$response_var), fill = input$response_var)) +
+  plot <- ggplot(dataframe(), aes_string(y = paste0("proportion_", input$response_var), fill = input$response_var)) +
          geom_bar(aes(x = Year), stat = "identity", position = "dodge") + 
-         if(input$error_bar == T){geom_errorbar(aes(ymin = lower_Victim.injury, ymax = upper_Victim.injury), color = "red", position = "dodge")} + 
          labs(x = "HS Graduation Rate",
               title = "Education vs Illiteracy in US States in 1977")
+  
+  # if (input$error_bar) {
+  #   plot <- plot + geom_errorbar(aes_string(ymin = paste0("lower_", input$response_var), ymax = paste0("upper_", input$response_var)), color = "red", position = "dodge") #position_dodge(width = 0.9)
+  # } 
+  
+  # Add error bars if selected
+  if (input$error_bar) {
+    validate(
+      need(paste0("lower_", input$response_var) %in% names(df), "Lower bound column missing in data!"),
+      need(paste0("upper_", input$response_var) %in% names(df), "Upper bound column missing in data!")
+    )
+    plot <- plot +
+      geom_errorbar(aes_string(
+        ymin = paste0("lower_", input$response_var),
+        ymax = paste0("upper_", input$response_var)
+      ), color = "red", position = position_dodge(width = 0.9))
+  }
+  
+  plot
 })
+
+
+
 ```
 
 
@@ -221,8 +245,8 @@ Column {.sidebar}
 # sliderInput("point_size", label = "Point size:",
 #             min = 0.5, max = 3, value = 2, step = 0.5)
 
-checkboxGroupInput("response_var", label = h3("Response Variable:"), 
-    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = 1)
+radioButtons("response_var", label = h3("Response Variable:"), 
+    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
 #"Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", 
   
