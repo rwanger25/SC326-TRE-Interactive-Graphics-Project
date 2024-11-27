@@ -30,6 +30,7 @@ library(ggplot2)
 library(shiny)
 library(tidyr)
 library(ggseas) #to use stat_rollapplyr
+library(plotly)
 
 ```
 
@@ -85,6 +86,24 @@ shark_attacks <- shark_attacks %>%
 shark_attacks <- shark_attacks %>%
   group_by(Year) %>%
   mutate(Number_Attacks = n())
+
+#creating a dataframe for timeline data
+shark_attacks_timeline <- shark_attacks %>%
+  mutate(Victim.age = as.ts(Victim.age)) %>% 
+  mutate(Incident.month = as.character(Incident.month)) %>% 
+  mutate(Incident.year = as.character(Incident.year)) %>%
+ # mutate(Incident.month_year = make_date(year = Incident.year, month=Incident.month)) 
+  unite("Incident.month_year", Incident.month, Incident.year, sep = "/", remove = F) %>% #remove = F, na.rm = T
+  mutate(Incident.month_year = paste0("01/", Incident.month_year),
+         Incident.month_year = as.Date(Incident.month_year, format = "%d/%m/%Y"))
+  
+#start and stop times
+
+start_time <- as.Date("1900-01-01")
+end_time <- as.Date("2022-03-01")
+
+start.end <- c(start_time,end_time)
+
 ```
 
 
@@ -193,6 +212,7 @@ How Have Shark Attacks Changed over Time?
 
 ```{r}
 
+
 dataframe <- reactive({switch(input$response_var,
                     "Victim.injury" = shark_attacks_proportions_Victim.injury,
                     "Site.category" = shark_attacks_proportions_Site.category,
@@ -202,33 +222,41 @@ dataframe <- reactive({switch(input$response_var,
                      "Victim.gender" = shark_attacks_proportions_Victim.gender)
 })
 
+lineplot <- c("Victim.age", "Shark.length.m", "No.sharks")
+barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.activity", "Injury.severity", "Victim.gender")
 
-renderPlot({
-  plot <- ggplot(dataframe(), aes_string(y = paste0("proportion_", input$response_var), fill = input$response_var)) +
+
+renderPlotly({
+  if(input$response_var %in% barchart){
+    barchart_plot <- ggplot(dataframe(), aes_string(y = paste0("proportion_", input$response_var), fill = input$response_var)) +
          geom_bar(aes(x = Year), stat = "identity", position = "dodge") + 
-         labs(x = "HS Graduation Rate",
+         labs(x = "Year",
+              y = "Proportion",
               title = "Education vs Illiteracy in US States in 1977")
-  
-  # if (input$error_bar) {
-  #   plot <- plot + geom_errorbar(aes_string(ymin = paste0("lower_", input$response_var), ymax = paste0("upper_", input$response_var)), color = "red", position = "dodge") #position_dodge(width = 0.9)
-  # } 
-  
-  # Add error bars if selected
+     # Add error bars if selected
   if (input$error_bar) {
-    validate(
-      need(paste0("lower_", input$response_var) %in% names(df), "Lower bound column missing in data!"),
-      need(paste0("upper_", input$response_var) %in% names(df), "Upper bound column missing in data!")
-    )
-    plot <- plot +
-      geom_errorbar(aes_string(
-        ymin = paste0("lower_", input$response_var),
-        ymax = paste0("upper_", input$response_var)
-      ), color = "red", position = position_dodge(width = 0.9))
+    barchart_plot <- barchart_plot +
+      geom_errorbar(data = dataframe(), 
+                    aes_string(x = "Year", 
+                               ymin = paste0("lower_", input$response_var), 
+                               ymax = paste0("upper_", input$response_var)), 
+                    color = "red", position = position_dodge(width = 0.9))
+    }
+    return(ggplotly(barchart_plot)) 
+  } else if (input$response_var %in% lineplot) {
+    lineplot_plot <- ggplot(data = shark_attacks_timeline,
+                            aes_string(x = "Incident.month_year", y = input$response_var)) +
+        geom_line()+
+        labs(x = "Date", y = "Victim Age") +
+        scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) +
+        stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
+    
+    return(ggplotly(lineplot_plot))
+   
   }
   
-  plot
 })
-
 
 
 ```
@@ -246,7 +274,7 @@ Column {.sidebar}
 #             min = 0.5, max = 3, value = 2, step = 0.5)
 
 radioButtons("response_var", label = h3("Response Variable:"), 
-    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+    choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
 #"Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", 
   
