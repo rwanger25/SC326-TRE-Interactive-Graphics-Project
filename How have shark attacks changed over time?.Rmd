@@ -34,7 +34,7 @@ view(shark_attacks_timeline)
 shark_attacks$Incident.year
 view(shark_attacks$Victim.age)
 
-shark_attacks$Victim.injury
+shark_attacks$Victim.activity
 #adding in means
 shark_attacks <- shark_attacks %>%
   filter(is.na(UIN) != T) %>% #removing the empty rows
@@ -42,18 +42,48 @@ shark_attacks <- shark_attacks %>%
                                    Victim.injury == "injured" ~ "Injured",
                                    Victim.injury == "Injured" ~ "Injured",
                                    Victim.injury == "uninjured" ~ "Uninjured")) %>%
+  mutate(Provoked.unprovoked = case_when(Provoked.unprovoked == "provoked" ~ "Provoked",
+                                   Provoked.unprovoked == "unprovoked" ~ "Unprovoked")) %>%
+  mutate(Victim.gender = case_when(Victim.gender == "female" ~ "Female",
+                                   Victim.gender == "male" ~ "Male")) %>%
+  mutate(Injury.severity = case_when(Injury.severity == "abrasion" ~ "Abrasion", Injury.severity == "major lacerations" ~ "Major Lacerations", Injury.severity == "minor lacerations" ~ "Minor Lacerations", Injury.severity == "other: teeth marks" ~ "Other: Teeth Marks", Injury.severity == "punctures" ~ "Punctures", Injury.severity == "surface wound" ~ "Surface Wound")) %>%
+  mutate(Site.category = case_when(Site.category == "coastal" ~ "Coastal",
+                                   Site.category == "Coastal" ~ "Coastal",
+                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour",
+                                   Site.category == "island open ocean" ~ "Island Open Ocean", 
+                                   Site.category == "ocean/pelagic" ~ "Ocean/Pelagic",
+                                   Site.category == "other: fish farm" ~ "Other: Fish Farm",
+                                   Site.category == "river" ~ "River")) %>%
+  filter(Incident.year != "1791") %>%
+  mutate(Victim.activity = case_when(Victim.activity == "boarding" ~ "Boarding",
+                                   Victim.activity == "diving" ~ "Diving",
+                                   Victim.activity == "fishing" ~ "Fishing",
+                                   Victim.activity == "motorised boating" ~ "Motorised Boating",
+                                   Victim.activity == "other: standing in water" ~ "Standing in Water",
+                                   Victim.activity == "other:floating" ~ "Floating",
+                                   Victim.activity == "snorkeling" ~ "Snorkeling", 
+                                   Victim.activity == "spearfishing" ~ "Spearfishing",
+                                   Victim.activity == "swimming" ~ "Swimming",
+                                   Victim.activity == "unmotorised boating" ~ "Unmotorised Boating")) %>%
+  filter(Incident.year != "1791") %>%
   group_by(Incident.year) %>%
    #creating mean columns
   mutate(Shark.length.m.mean = mean(Shark.length.m)) %>%
   mutate(No.sharks.mean = mean(No.sharks)) %>%
   mutate(Victim.age.mean = mean(Victim.age)) %>%
   #creating date groupings
-  mutate(Year = case_when((Incident.year > 1790 & Incident.year <= 1850) ~ "1790-1850", 
+  mutate(Year = case_when((Incident.year > 1800 & Incident.year <= 1850) ~ "1800-1850", 
                           (Incident.year > 1850 & Incident.year <= 1900) ~ "1850-1900",
                           (Incident.year > 1900 & Incident.year <= 1950) ~ "1900-1950",
                           (Incident.year > 1950 & Incident.year <= 2000) ~ "1950-2000",
-                          (Incident.year > 2000 & Incident.year <= 2022) ~ "2000-2022"))
+                          (Incident.year > 2000 & Incident.year <= 2022) ~ "2000-2022")) 
 
+#counting the number of sharks every 50 years
+shark_attacks <- shark_attacks %>%
+  group_by(Year) %>%
+  mutate(Number_Attacks = n())
+  
+#creating a dataframe for timeline data
 shark_attacks_timeline <- shark_attacks %>%
   mutate(Victim.age = as.ts(Victim.age)) %>% 
   mutate(Incident.month = as.character(Incident.month)) %>% 
@@ -98,7 +128,7 @@ ggplot(data = shark_attacks_timeline, aes(x = Incident.month_year, y = Shark.len
   stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
 
-#number of sharks
+#number of sharks during the attacks
 ggplot(data = shark_attacks_timeline, aes(x = Incident.month_year, y = No.sharks)) +
   geom_line()+ 
   labs(x = "Date", y = "Number of Sharks") +
@@ -186,7 +216,7 @@ shark_attacks_proportions<- shark_attacks %>%  #  Start with the cereal data.fra
   
   
    mutate(total_Victim.gender = sum(count_Victim.gender),  
-         proportion_Victim.gender = count_Victim.activity / total_Victim.activity,  
+         proportion_Victim.gender = count_Victim.gender / total_Victim.gender,  
          std_error_Victim.gender = sqrt(proportion_Victim.gender * (1-proportion_Victim.gender) / total_Victim.gender),  
          lower_Victim.gender = proportion_Victim.gender - 1.96 * std_error_Victim.gender,  
          upper_Victim.gender = proportion_Victim.gender + 1.96 * std_error_Victim.gender) %>%
@@ -242,37 +272,37 @@ shark_attacks_proportions_Provoked.unprovoked <- shark_attacks %>%  #  Start wit
   
 
 #Victim.activity
-shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #  Start with the cereal data.frame
+shark_attacks_proportions_Victim.activity <- shark_attacks %>%  #  Start with the cereal data.frame
   filter(Victim.activity != "") %>%
   group_by(Year, Victim.activity) %>%  #  group by the year variable
-  summarise(count_Injury.severity = n()) %>%  
+  summarise(count_Victim.activity = n()) %>%  
   mutate(total_Victim.activity = sum(count_Victim.activity),  
          proportion_Victim.activity = count_Victim.activity / total_Victim.activity,  
          std_error_Victim.activity = sqrt(proportion_Victim.activity * (1-proportion_Victim.activity) / total_Victim.activity),  
          lower_Victim.activity = proportion_Victim.activity - 1.96 * std_error_Victim.activity,  
-         upper_Victim.activity = proportion_Victim.activity + 1.96 * std_error_Victim.activity) %>%
-  
+         upper_Victim.activity = proportion_Victim.activity + 1.96 * std_error_Victim.activity)
+
 
 #Victim.gender 
-shark_attacks_proportions_Victim.gender <- shark_attacks %>%  #  Start with the cereal data.frame
+shark_attacks_proportions_Victim.gender <- shark_attacks %>% #  Start with the data.frame
   filter(Victim.gender != "") %>%
   group_by(Year, Victim.gender) %>%  #  group by the year variable
   summarise(count_Victim.gender = n()) %>%    
   mutate(total_Victim.gender = sum(count_Victim.gender),  
          proportion_Victim.gender = count_Victim.gender / total_Victim.gender,  
-         std_error_Victim.gender = sqrt(proportion_Victim.gender * (1-proportion_Victim.gender) / total_Victim.gender),  
+         std_error_Victim.gender = sqrt(proportion_Victim.gender * (1-proportion_Victim.gender) / total_Victim.gender), 
          lower_Victim.gender = proportion_Victim.gender - 1.96 * std_error_Victim.gender,  
          upper_Victim.gender = proportion_Victim.gender + 1.96 * std_error_Victim.gender)
   
   
 #Injury.severity
-shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #  Start with the cereal data.frame
+shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the cereal data.frame
   filter(Injury.severity != "") %>%
   group_by(Year, Injury.severity) %>%  #  group by the year variable
   summarise(count_Injury.severity = n()) %>%  
   mutate(total_Injury.severity = sum(count_Injury.severity),  
          proportion_Injury.severity = count_Injury.severity / total_Injury.severity,  
-         std_error_Injury.severity = sqrt(proportion_Injury.severity * (1-proportion_Injury.severity) / total_Injury.severity),  
+         std_error_Injury.severity = sqrt(proportion_Injury.severity * (1-proportion_Injury.severity) / total_Injury.severity), 
          lower_Injury.severity = proportion_Injury.severity - 1.96 * std_error_Injury.severity,  
          upper_Injury.severity = proportion_Injury.severity + 1.96 * std_error_Injury.severity) 
   
@@ -287,7 +317,12 @@ shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #  Start with th
 ```{r}
 #- Victim.injury, Site.category, Provoked.unprovoked, Victim.activity, Victim.gender, Injury.severity
 
-#Victim.injury
+#number of attackes
+ggplot(data = shark_attacks, aes(x = Year, y = Number_Attacks)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(y = "Frequency of Shark Attacks")
+
+ #Victim.injury
 
 #basic proportion
 ggplot(data = shark_attacks_proportions, aes(x = Year, y = proportion_Victim.injury)) +
@@ -308,14 +343,14 @@ ggplot(data = shark_attacks_proportions_Victim.injury, aes(x = Year, y = proport
   labs(y = "Proportion",
        fill = "Site Category",
        title = "Proportion of Shark Attack Victim Injury Types Across Time") +
-  geom_errorbar(aes(ymin = lower_Victim.injury, ymax = upper_Victim.injury, color = "red", position = "dodge"))
+  geom_errorbar(aes(ymin = lower_Victim.injury, ymax = upper_Victim.injury), color = "red", position = "dodge")
 
 #Site.category
 
 #basic proportion
 ggplot(data = shark_attacks_proportions, aes(x = Year, y = proportion_Site.category)) +
   geom_bar(stat = "identity") +
-  labs(Y = "Proportion of Site Category")
+  labs(Y = "Proportion of Site Category")+
   geom_errorbar(aes(ymin = lower_Site.category, ymax = upper_Site.category), color = "red")
   
 #counts side by side barchart
@@ -329,7 +364,7 @@ ggplot(data = shark_attacks_proportions_Site.category, aes(x = Year, y = proport
   labs(y = "Proportion",
        fill = "Site Category",
        title = "Proportion of Site Category of Shark Attacks Across Time") +
-  geom_errorbar(aes(ymin = lower_Site.category, ymax = upper_Site.category, color = "red", position = "dodge"))
+  geom_errorbar(aes(ymin = lower_Site.category, ymax = upper_Site.category), color = "red", position = "dodge")
 
 #Provoked.unprovoked
 
@@ -348,9 +383,9 @@ ggplot(data = shark_attacks_proportions_Provoked.unprovoked, aes(x = Year, y = c
 ggplot(data = shark_attacks_proportions_Provoked.unprovoked, aes(x = Year, y = proportion_Provoked.unprovoked, fill = Provoked.unprovoked)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(y = "Proportion",
-       fill = "Provoked vs. Unprovoked Shark Attacks",
+       fill = "Provoked?",
        title = "Proportion of Provoked vs. Unprovoked Shark Attacks Across Time") +
-  geom_errorbar(aes(ymin = lower_Victim.activity, ymax = upper_Victim.activity, color = "red", position = "dodge"))
+  geom_errorbar(aes(ymin = lower_Provoked.unprovoked, ymax = upper_Provoked.unprovoked), color = "red", position = "dodge")
 
 #Victim.activity
 
@@ -371,7 +406,7 @@ ggplot(data = shark_attacks_proportions_Victim.activity, aes(x = Year, y = propo
   labs(y = "Proportion",
        fill = "Victim Activity",
        title = "Proportion of Shark Attack Victim Activities Across Time") +
-  geom_errorbar(aes(ymin = lower_Victim.activity, ymax = upper_Victim.activity, color = "red", position = "dodge"))
+  geom_errorbar(aes(ymin = lower_Victim.activity, ymax = upper_Victim.activity), color = "red", position = "dodge")
 
 
 #Victim.gender
@@ -391,7 +426,7 @@ ggplot(data = shark_attacks_proportions_Victim.gender, aes(x = Year, y = count_V
 ggplot(data = shark_attacks_proportions_Victim.gender, aes(x = Year, y = proportion_Victim.gender, fill = Victim.gender)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(y = "Proportion",
-       fill = "Victim Gendery",
+       fill = "Victim Gender",
        title = "Proportion of Shark Attack Victim Genders Across Time") +
   geom_errorbar(aes(ymin = lower_Victim.gender, ymax = upper_Victim.gender), color = "red", position = "dodge")
 

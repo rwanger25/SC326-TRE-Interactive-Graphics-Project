@@ -10,7 +10,7 @@ runtime: shiny
 ## Connecting to the Shiny App Account
 rsconnect::setAccountInfo(name='ter1',
 			  token='0163EF6118B243DE8D0042631C039930',
-			  secret='rvvnmpSjrYZ8H/YL2sWWCZd71FQwVbamEkFlag8Z')
+			  secret='SECRET')
 
 ## Actually running and deploying the app
 
@@ -45,7 +45,6 @@ library(shiny)
 library(tidyr)
 library(ggseas) #to use stat_rollapplyr
 ```
-
 
 
 How Have Shark Attacks Changed over Time?
