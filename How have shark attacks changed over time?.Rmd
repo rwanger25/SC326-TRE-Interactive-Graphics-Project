@@ -93,8 +93,6 @@ shark_attacks_timeline <- shark_attacks %>%
   mutate(Incident.month_year = paste0("01/", Incident.month_year),
          Incident.month_year = as.Date(Incident.month_year, format = "%d/%m/%Y"))
   
-  
-
 
 ```
 

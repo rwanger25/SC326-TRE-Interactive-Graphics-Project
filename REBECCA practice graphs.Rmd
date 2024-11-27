@@ -276,12 +276,6 @@ Column {.sidebar}
 radioButtons("response_var", label = h3("Response Variable:"), 
     choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
-#"Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", 
-  
-    
-    #("Victim Age" = 1, "Shark Length" = 2, "Number of Sharks During the Attacks" = 3, "Victim Injury" = 4, "Site Category" = 5, "Site Category" = 6, "Provoked?" = 7, "Victim Activity" = 8,"Injury Severity" = 9, "Victim Gender" = 10), selected =1)
-    
-
 checkboxInput("error_bar", label = "Include Error Bar")
 ```
 

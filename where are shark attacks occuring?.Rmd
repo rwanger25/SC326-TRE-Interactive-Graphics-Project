@@ -1,0 +1,115 @@
+---
+title: "Where are shark attacks occuring?"
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+# Loading in the Data and Packages
+```{r global, include=FALSE, warning=FALSE, message=FALSE}
+shark_attacks <- read.csv("Shark Dataset.csv")
+
+# load packages in 'global' chunk so they can be shared by all users of the dashboard
+library(httr2)
+library(purrr)
+library(tibble)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(shiny)
+library(tidyr)
+library(stringr)
+
+#shapefiles
+library(sf)
+library(maps)
+
+View(shark_attacks)
+```
+
+
+
+# cleaning the data
+
+```{r}
+
+#adding in means
+shark_attacks <- shark_attacks %>%
+  filter(is.na(UIN) != T) %>% #removing the empty rows
+  mutate(Victim.injury = case_when(Victim.injury == "fatal" ~ "Fatal",
+                                   Victim.injury == "injured" ~ "Injured",
+                                   Victim.injury == "Injured" ~ "Injured",
+                                   Victim.injury == "uninjured" ~ "Uninjured")) %>%
+  mutate(Provoked.unprovoked = case_when(Provoked.unprovoked == "provoked" ~ "Provoked",
+                                   Provoked.unprovoked == "unprovoked" ~ "Unprovoked")) %>%
+  mutate(Victim.gender = case_when(Victim.gender == "female" ~ "Female",
+                                   Victim.gender == "male" ~ "Male")) %>%
+  mutate(Injury.severity = case_when(Injury.severity == "abrasion" ~ "Abrasion", Injury.severity == "major lacerations" ~ "Major Lacerations", Injury.severity == "minor lacerations" ~ "Minor Lacerations", Injury.severity == "other: teeth marks" ~ "Other: Teeth Marks", Injury.severity == "punctures" ~ "Punctures", Injury.severity == "surface wound" ~ "Surface Wound")) %>%
+  mutate(Site.category = case_when(Site.category == "coastal" ~ "Coastal",
+                                   Site.category == "Coastal" ~ "Coastal",
+                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour",
+                                   Site.category == "island open ocean" ~ "Island Open Ocean", 
+                                   Site.category == "ocean/pelagic" ~ "Ocean/Pelagic",
+                                   Site.category == "other: fish farm" ~ "Other: Fish Farm",
+                                   Site.category == "river" ~ "River")) %>%
+  filter(Incident.year != "1791") %>%
+  mutate(Victim.activity = case_when(Victim.activity == "boarding" ~ "Boarding",
+                                   Victim.activity == "diving" ~ "Diving",
+                                   Victim.activity == "fishing" ~ "Fishing",
+                                   Victim.activity == "motorised boating" ~ "Motorised Boating",
+                                   Victim.activity == "other: standing in water" ~ "Standing in Water",
+                                   Victim.activity == "other:floating" ~ "Floating",
+                                   Victim.activity == "snorkeling" ~ "Snorkeling", 
+                                   Victim.activity == "spearfishing" ~ "Spearfishing",
+                                   Victim.activity == "swimming" ~ "Swimming",
+                                   Victim.activity == "unmotorised boating" ~ "Unmotorised Boating")) %>%
+  filter(Incident.year != "1791") %>%
+  group_by(Incident.year) %>%
+   #creating mean columns
+  mutate(Shark.length.m.mean = mean(Shark.length.m)) %>%
+  mutate(No.sharks.mean = mean(No.sharks)) %>%
+  mutate(Victim.age.mean = mean(Victim.age)) %>%
+  #creating date groupings
+  mutate(Year = case_when((Incident.year > 1800 & Incident.year <= 1850) ~ "1800-1850", 
+                          (Incident.year > 1850 & Incident.year <= 1900) ~ "1850-1900",
+                          (Incident.year > 1900 & Incident.year <= 1950) ~ "1900-1950",
+                          (Incident.year > 1950 & Incident.year <= 2000) ~ "1950-2000",
+                          (Incident.year > 2000 & Incident.year <= 2022) ~ "2000-2022")) 
+
+#counting the number of sharks every 50 years
+shark_attacks <- shark_attacks %>%
+  group_by(Year) %>%
+  mutate(Number_Attacks = n())
+```
+
+
+```{r}
+#loading in the sf data
+view(shark_attacks)
+
+#removing the spaces in the latitude and longitude data that causes errors
+shark_attacks_fixed_latlon <- shark_attacks %>%
+  mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
+  mutate(Longitude = str_replace_all(Longitude, "\\s+", ""))
+
+# To make the map with points
+shark_attacks_sf <- shark_attacks_fixed_latlon %>%
+  st_as_sf(coords = c("Latitude", "Longitude"), crs = 3577)
+
+# reading in the Australian state shapefiles
+aus_shp <- st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
+
+#crop the australia polygon 
+aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)      
+
+#aus_shp <- aus_shp$geometry #assigning only the geometry of the states
+aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
+
+
+#plotting the australia map
+ggplot()+
+  geom_sf(data = shark_attacks_sf, color = "red") + 
+  geom_sf(data = aus_shp$geometry)
+
+
+```
+
