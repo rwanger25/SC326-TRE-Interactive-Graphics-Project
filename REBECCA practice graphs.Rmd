@@ -1,6 +1,7 @@
 ---
 title: "REBECCA Practice"
 output: flexdashboard::flex_dashboard
+#  orientation: rows
 runtime: shiny
 ---
 
@@ -16,10 +17,6 @@ runtime: shiny
 
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
 
-# Loading in the Data and Packages
-
-shark_attacks <- read.csv("Shark Dataset.csv")
-
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
 library(purrr)
@@ -31,6 +28,20 @@ library(shiny)
 library(tidyr)
 library(ggseas) #to use stat_rollapplyr
 library(plotly)
+
+#loading in packages related to the maps
+library(stringr) #to use str functions
+library(sf)
+library(maps)
+
+# Loading in the Data and Packages
+
+shark_attacks <- read.csv("Shark Dataset.csv")
+
+# reading in the Australian state shapefiles
+
+load("aus_shp.RData")
+  #st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
 
 ```
 
@@ -193,12 +204,43 @@ plot <- ggplot(data = shark_attacks_proportions_Injury.severity, aes(x = Year, y
        title = "Proportion of Shark Attack Injury Severities Across Time") 
 
 
- plot <- plot + geom_errorbar(aes(ymin = lower_Injury.severity, ymax = upper_Injury.severity), color = "red", position = "dodge")
+plot <- plot + geom_errorbar(aes(ymin = lower_Injury.severity, ymax = upper_Injury.severity), color = "red", position = "dodge")
 
 
 
 ```
 
+```{r}
+#loading in the sf data
+
+#removing the spaces in the latitude and longitude data that causes errors
+shark_attacks_fixed_latlon <- shark_attacks %>%
+  mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
+  mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
+  mutate(Latitude = as.numeric(Latitude)) %>%
+  mutate(Longitude = as.numeric(Longitude))
+
+
+# To make the map with points
+shark_attacks_sf <- shark_attacks_fixed_latlon %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = 3577)
+
+
+#crop the australia polygon 
+aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)   
+
+#aus_shp <- aus_shp$geometry #assigning only the geometry of the states
+aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
+
+
+# #plotting the australia map
+# ggplot()+
+#   geom_sf(data = shark_attacks_sf, color = "red") + 
+#   geom_sf(data = aus_shp)
+
+
+```
 
 
 Introduction: You Won a Trip to Australia!
@@ -277,6 +319,37 @@ radioButtons("response_var", label = h3("Response Variable:"),
     choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
 checkboxInput("error_bar", label = "Include Error Bar")
+```
+
+
+Where are Shark Attacks Occuring?
+=====================================  
+
+
+```{r}
+
+aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON")
+shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
+
+renderPlotly({
+  map <- ggplot()+
+    geom_sf(data = shark_attacks_sf, color = "red") + 
+    geom_sf(data = aus_shp) +
+    geom_sf(
+      data = shark_attacks_sf, 
+      aes(text = paste0("Date: ", Incident.year, 
+                        "<br>Location: ", Location, 
+                        "<br>Victim Activity: ", Victim.activity,
+                        "<br>Injury: ", Victim.injury,
+                        "<br>Site Category: ", Site.category)), 
+      color = "red", 
+      size = 2) 
+  
+  return(ggplotly(map))
+
+})
+
+
 ```
 
 

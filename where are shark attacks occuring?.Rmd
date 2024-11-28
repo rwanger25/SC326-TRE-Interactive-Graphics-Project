@@ -23,7 +23,6 @@ library(stringr)
 library(sf)
 library(maps)
 
-View(shark_attacks)
 ```
 
 
@@ -84,31 +83,35 @@ shark_attacks <- shark_attacks %>%
 
 ```{r}
 #loading in the sf data
-view(shark_attacks)
 
 #removing the spaces in the latitude and longitude data that causes errors
 shark_attacks_fixed_latlon <- shark_attacks %>%
   mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
-  mutate(Longitude = str_replace_all(Longitude, "\\s+", ""))
+  mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
+  mutate(Latitude = as.numeric(Latitude)) %>%
+  mutate(Longitude = as.numeric(Longitude))
+
 
 # To make the map with points
 shark_attacks_sf <- shark_attacks_fixed_latlon %>%
-  st_as_sf(coords = c("Latitude", "Longitude"), crs = 3577)
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = 3577)
 
 # reading in the Australian state shapefiles
 aus_shp <- st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
 
 #crop the australia polygon 
-aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)      
+aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)   
 
 #aus_shp <- aus_shp$geometry #assigning only the geometry of the states
 aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
 
+   
 
 #plotting the australia map
 ggplot()+
   geom_sf(data = shark_attacks_sf, color = "red") + 
-  geom_sf(data = aus_shp$geometry)
+  geom_sf(data = aus_shp)
 
 
 ```
