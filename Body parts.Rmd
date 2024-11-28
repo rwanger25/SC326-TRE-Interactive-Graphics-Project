@@ -1,0 +1,70 @@
+---
+title: "Body parts page"
+date: "11/24/24"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+runtime: shiny
+
+---
+
+Which body part should you be careful for the most?
+=====================================  
+
+```{r global, include=FALSE, warning=FALSE, message=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+library(tidyverse)
+library(flexdashboard)
+library(dplyr)
+library(plotly)
+library(stringr)
+library(devtools)
+install_github("josedv82/bdgramR")
+library(bdgramR)
+
+shark <- read.csv("Shark Dataset.csv")
+
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+selectInput("injured_EL", label = "Which part of your body do you want to watch out for?", 
+            choices =  c("Arms" = "arms",
+                         "Legs" = "legs"))
+
+
+```
+
+Data source: Australian Shark-Incident Database
+
+Row
+-----------------------------------------------------------------------
+### plot
+
+unfortunately this body part polygon doesn't work with plotly so i haven't figured out a way to combine it with plotly. i plan to clean the data from the shark dataset and add it to the body though
+
+```{r}
+renderPlot({
+dat <- bdgramr(data = data, model = "basic_male")
+
+ggplot(data = dat, aes(x,y, group = Id)) +
+  geom_bdgramr(color = "cyan", aes(fill = Muscle)) +
+  labs(title = "BdygramR: original_male diagram")
+
+})
+```
+
+Page 2
+=====================================  
+
+Row
+-----------------------------------------------------------------------
+
+Another sidebar, for interaction controls...
+
+Row
+-----------------------------------------------------------------------
+
+Another area, for interactive graphs and text boxes...
