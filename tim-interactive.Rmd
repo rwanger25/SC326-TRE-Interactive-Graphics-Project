@@ -1,0 +1,145 @@
+---
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+```{r global, include=FALSE, warning=FALSE, message=FALSE}
+library(httr2)
+library(purrr)
+library(tibble)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(shiny)
+library(readxl)
+library(tidyr)
+```
+
+What Activities Put You at the Highest Risk of Shark Attacks?
+=====================================  
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+radioButtons("gender_button", label = "Select Gender", choices = c("All" = "all", "Female" = "female", "Male" = "male"))
+radioButtons("age_button", label = "Select Age Range", choices = c("All" = "all", "0-9" = "0-9", "10-19" = "10-19", "20-29" = "20-29", "30-39" = "30-39", "40-49" = "40-49", "50-59" = "50-59", "60+" = "60+"))
+```
+
+Column
+-----------------------------------------------------------------------
+
+### What Activities Put You at the Highest Risk of Shark Attacks?
+
+```{r}
+sharks_act <- read_excel("sharks.xlsx", sheet = 1)
+
+sharks_act <- sharks_act %>%
+  select(Victim.activity, Victim.gender, Victim.age)
+sharks_act$age <- cut(sharks_act$Victim.age, breaks = c(0, 10, 20, 30, 40, 50, 60, Inf), labels = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"), right = FALSE)
+
+sharks_act <- sharks_act %>%
+  drop_na(Victim.activity)
+
+renderPlot({
+  if(input$gender_button == "all")
+    {
+    sharks_act_filtered_v1 <- sharks_act
+    }
+  if(input$gender_button == "female")
+    {
+    sharks_act_filtered_v1 <- sharks_act %>%
+      filter(Victim.gender == "female")
+    }
+  if(input$gender_button == "male")
+    {
+    sharks_act_filtered_v1 <- sharks_act %>%
+      filter(Victim.gender == "male")
+    }
+  if(input$age_button == "all")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1
+    }
+  if(input$age_button == "0-9")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "0-9")
+    }
+  if(input$age_button == "10-19")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "10-19")
+    }
+    if(input$age_button == "20-29")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "20-29")
+    }
+    if(input$age_button == "30-39")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "30-39")
+    }
+    if(input$age_button == "40-49")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "40-49")
+    }
+    if(input$age_button == "50-59")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "50-59")
+    }
+    if(input$age_button == "60+")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(age == "60+")
+    }
+  ggplot(sharks_act_filtered, aes(x = Victim.activity)) + geom_bar() + labs(x = "Activity", y = "Number of Shark Attacks")})
+```
+
+When Should You Swim?
+=====================================  
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+radioButtons("time_button", label = "By Month or Time of Day?", choices = c("Month" = "month", "Time of Day" = "hour"))
+```
+
+Column
+-----------------------------------------------------------------------
+
+### When Should You Swim?
+
+```{r}
+sharks_time <- read_excel("sharks.xlsx", sheet = 1)
+
+sharks_time <- sharks_time %>%
+  select(Incident.month, Time.of.incident)
+
+sharks_time$Time.of.incident <- floor(as.numeric(sharks_time$Time.of.incident) / 100) * 100
+
+sharks_time_month <- sharks_time %>%
+  group_by(Incident.month) %>%
+  summarise(count_month = n())
+
+sharks_time_hour <- sharks_time %>%
+  group_by(Time.of.incident) %>%
+  summarise(count_hour = n())
+
+sharks_time_hour <- sharks_time_hour %>%
+  drop_na(Time.of.incident)
+
+renderPlot({
+  if(input$time_button == "month")
+    {
+    ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point() + geom_line() + labs(x = "Month", y = "Number of Shark Attacks")
+    }
+  else
+    {
+    ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour)) + geom_point() + geom_line() + labs(x = "Time of Day", y = "Number of Shark Attacks")
+    }
+  })
+```
