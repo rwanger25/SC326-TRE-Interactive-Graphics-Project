@@ -106,13 +106,28 @@ aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) 
 #aus_shp <- aus_shp$geometry #assigning only the geometry of the states
 aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
 
-   
 
 #plotting the australia map
 ggplot()+
   geom_sf(data = shark_attacks_sf, color = "red") + 
   geom_sf(data = aus_shp)
 
+aus_shp <-st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp", stringsAsFactors=FALSE, quiet=TRUE)
+save(aus_shp, file="./aus_shp.RData")
+load("aus_shp.RData")
 
 ```
 
+```{r}
+
+renderPlotly({
+  map <- ggplot()+
+    geom_sf(data = shark_attacks_sf, color = "red") + 
+    geom_sf(data = aus_shp)
+  
+  ggplotly(map)
+
+)}
+
+
+```
