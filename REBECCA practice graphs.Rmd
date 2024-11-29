@@ -274,7 +274,7 @@ renderPlotly({
          geom_bar(aes(x = Year), stat = "identity", position = "dodge") + 
          labs(x = "Year",
               y = "Proportion",
-              title = "Education vs Illiteracy in US States in 1977")
+              title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Types from Shark Attacks over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders over Time", "")))))))
      # Add error bars if selected
   if (input$error_bar) {
     barchart_plot <- barchart_plot +
