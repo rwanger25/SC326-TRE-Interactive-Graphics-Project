@@ -267,8 +267,7 @@ How Have Shark Attacks Changed over Time?
 
 ### Shark Attacks over Time
 
-Row {data-height=350}
--------------------------------------
+
 
 ```{r}
 
@@ -295,19 +294,26 @@ renderPlotly({
               title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Types from Shark Attacks over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders over Time", "")))))),
               fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))))
      # Add error bars if selected
-  if (input$error_bar) {
+  if (input$error_bar & input$prop_count == "prop") {
     barchart_plot <- barchart_plot +
       geom_errorbar(data = dataframe(), 
                     aes_string(x = "Year", 
                                ymin = paste0("lower_", input$response_var), 
                                ymax = paste0("upper_", input$response_var)), 
                     color = "red", position = position_dodge(width = 0.9))
-    }
+    } 
+  if (input$error_bar & input$prop_count == "prop") {
+    print("You cannot print errorbars for count data!")
+  }
+    
     return(ggplotly(barchart_plot)) 
+    
   } else if (input$response_var %in% lineplot) {
     lineplot_plot <- ggplot(data = shark_attacks_timeline,
                             aes_string(x = "Incident.month_year", y = input$response_var)) +
         geom_line()+
+        geom_point() +
+        geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
         labs(x = "Date", y = "Victim Age") +
         scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) +
         stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
@@ -339,11 +345,12 @@ Column {.sidebar}
 radioButtons("response_var", label = h3("Response Variable:"), 
     choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
-checkboxInput("error_bar", label = h2("Include Error Bar"))
-
-
 radioButtons("prop_count", label = h3("Proportions or Count:"), 
                    choices = list("Proportion" = "prop", "Count" = "count"))
+
+
+checkboxInput("error_bar", label = h4("Include Error Bar"))
+
 
 ```
 
@@ -361,6 +368,7 @@ renderPlotly({
   map <- ggplot()+
     geom_sf(data = shark_attacks_sf, color = "red") +
    geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
+    labs(x = "", y = "", fill = "State") +
   geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
   geom_sf(data = shark_attacks_sf, aes(text = paste0("Date: ", Incident.year,
                       "<br>Location: ", Location,
