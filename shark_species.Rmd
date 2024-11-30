@@ -288,7 +288,7 @@ ggplot(shark_year, aes(x = Incident.year, attack_count)) +
   geom_line( color = "steelblue") +
   geom_point( color = "steelblue", size = 1 ) +
   geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
-  labs(title = paste("How has the ", input$shark_species_EL, " attacks changed with time?"),
+  labs(title = paste("How has the", input$shark_species_EL, "attacks changed with time?"),
        x = "Time (years)",
        y = "Number of attacks") +
   theme(legend.position="none")

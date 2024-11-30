@@ -1,6 +1,8 @@
 ---
 title: "REBECCA Practice"
-output: flexdashboard::flex_dashboard
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
 runtime: shiny
 ---
 
@@ -16,10 +18,6 @@ runtime: shiny
 
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
 
-# Loading in the Data and Packages
-
-shark_attacks <- read.csv("Shark Dataset.csv")
-
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
 library(purrr)
@@ -31,6 +29,20 @@ library(shiny)
 library(tidyr)
 library(ggseas) #to use stat_rollapplyr
 library(plotly)
+
+#loading in packages related to the maps
+library(stringr) #to use str functions
+library(sf)
+library(maps)
+
+# Loading in the Data and Packages
+
+shark_attacks <- read.csv("Shark Dataset.csv")
+
+# reading in the Australian state shapefiles
+
+load("aus_shp.RData")
+  #st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
 
 ```
 
@@ -193,12 +205,56 @@ plot <- ggplot(data = shark_attacks_proportions_Injury.severity, aes(x = Year, y
        title = "Proportion of Shark Attack Injury Severities Across Time") 
 
 
- plot <- plot + geom_errorbar(aes(ymin = lower_Injury.severity, ymax = upper_Injury.severity), color = "red", position = "dodge")
+plot <- plot + geom_errorbar(aes(ymin = lower_Injury.severity, ymax = upper_Injury.severity), color = "red", position = "dodge")
 
 
 
 ```
 
+```{r}
+#loading in the sf data
+
+#removing the spaces in the latitude and longitude data that causes errors
+shark_attacks_fixed_latlon <- shark_attacks %>%
+  mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
+  mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
+  mutate(Latitude = as.numeric(Latitude)) %>%
+  mutate(Longitude = as.numeric(Longitude))
+
+
+# To make the map with points
+shark_attacks_sf <- shark_attacks_fixed_latlon %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = 3577)
+
+
+#crop the australia polygon 
+aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)   
+
+#aus_shp <- aus_shp$geometry #assigning only the geometry of the states
+aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
+
+#filtering out other territories
+aus_shp <- aus_shp %>%
+  filter(STE_NAME21 != "Other Territories")
+
+# #plotting the australia map
+# ggplot()+
+#   geom_sf(data = shark_attacks_sf, color = "red") + 
+#   geom_sf(data = aus_shp)
+
+
+```
+
+
+```{r}
+#calculating the count and proportion of attacks by location
+
+#shark_attacks_location <- shark_attacks %>%
+  
+
+
+```
 
 
 Introduction: You Won a Trip to Australia!
@@ -208,7 +264,10 @@ Introduction: You Won a Trip to Australia!
 How Have Shark Attacks Changed over Time?
 =====================================  
 
+
 ### Shark Attacks over Time
+
+
 
 ```{r}
 
@@ -228,25 +287,33 @@ barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.a
 
 renderPlotly({
   if(input$response_var %in% barchart){
-    barchart_plot <- ggplot(dataframe(), aes_string(y = paste0("proportion_", input$response_var), fill = input$response_var)) +
+    barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
          geom_bar(aes(x = Year), stat = "identity", position = "dodge") + 
          labs(x = "Year",
-              y = "Proportion",
-              title = "Education vs Illiteracy in US States in 1977")
+              y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
+              title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Types from Shark Attacks over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders over Time", "")))))),
+              fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))))
      # Add error bars if selected
-  if (input$error_bar) {
+  if (input$error_bar & input$prop_count == "prop") {
     barchart_plot <- barchart_plot +
       geom_errorbar(data = dataframe(), 
                     aes_string(x = "Year", 
                                ymin = paste0("lower_", input$response_var), 
                                ymax = paste0("upper_", input$response_var)), 
                     color = "red", position = position_dodge(width = 0.9))
-    }
+    } 
+  if (input$error_bar & input$prop_count == "prop") {
+    print("You cannot print errorbars for count data!")
+  }
+    
     return(ggplotly(barchart_plot)) 
+    
   } else if (input$response_var %in% lineplot) {
     lineplot_plot <- ggplot(data = shark_attacks_timeline,
                             aes_string(x = "Incident.month_year", y = input$response_var)) +
         geom_line()+
+        geom_point() +
+        geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
         labs(x = "Date", y = "Victim Age") +
         scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) +
         stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
@@ -266,6 +333,8 @@ renderPlotly({
 Column {.sidebar}
 -----------------------------------------------------------------------
 
+<!-- Row {data-height=350} -->
+<!-- ------------------------------------- -->
 
 ```{r}
 
@@ -276,7 +345,44 @@ Column {.sidebar}
 radioButtons("response_var", label = h3("Response Variable:"), 
     choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
-checkboxInput("error_bar", label = "Include Error Bar")
+radioButtons("prop_count", label = h3("Proportions or Count:"), 
+                   choices = list("Proportion" = "prop", "Count" = "count"))
+
+
+checkboxInput("error_bar", label = h4("Include Error Bar"))
+
+
+```
+
+
+Where are Shark Attacks Occuring?
+=====================================  
+
+
+```{r}
+
+aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T
+shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
+
+renderPlotly({
+  map <- ggplot()+
+    geom_sf(data = shark_attacks_sf, color = "red") +
+   geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
+    labs(x = "", y = "", fill = "State") +
+  geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
+  geom_sf(data = shark_attacks_sf, aes(text = paste0("Date: ", Incident.year,
+                      "<br>Location: ", Location,
+                      "<br>Victim Activity: ", Victim.activity,
+                      "<br>Injury: ", Victim.injury,
+                      "<br>Site Category: ", Site.category)),
+    color = "red",
+    size = 2)
+  
+  return(ggplotly(map))
+
+})
+
+
 ```
 
 
