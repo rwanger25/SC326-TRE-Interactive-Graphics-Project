@@ -37,12 +37,14 @@ library(maps)
 
 # Loading in the Data and Packages
 
-shark_attacks <- read.csv("Shark Dataset.csv")
+shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
 # reading in the Australian state shapefiles
 
 load("aus_shp.RData")
   #st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
+
+View(shark_attacks)
 
 ```
 
@@ -333,14 +335,12 @@ renderPlotly({
 Column {.sidebar}
 -----------------------------------------------------------------------
 
-<!-- Row {data-height=350} -->
-<!-- ------------------------------------- -->
+
 
 ```{r}
 
 
-# sliderInput("point_size", label = "Point size:",
-#             min = 0.5, max = 3, value = 2, step = 0.5)
+#widgets for the barcharts
 
 radioButtons("response_var", label = h3("Response Variable:"), 
     choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
@@ -348,9 +348,7 @@ radioButtons("response_var", label = h3("Response Variable:"),
 radioButtons("prop_count", label = h3("Proportions or Count:"), 
                    choices = list("Proportion" = "prop", "Count" = "count"))
 
-
 checkboxInput("error_bar", label = h4("Include Error Bar"))
-
 
 ```
 
@@ -358,6 +356,8 @@ checkboxInput("error_bar", label = h4("Include Error Bar"))
 Where are Shark Attacks Occuring?
 =====================================  
 
+Column 
+-----------------------------------------------------------------------
 
 ```{r}
 
@@ -366,7 +366,7 @@ shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
 
 renderPlotly({
   map <- ggplot()+
-    geom_sf(data = shark_attacks_sf, color = "red") +
+    geom_sf(data = shark_attacks_sf, color = "red", alpha = input$point_transp, size = input$point_size, aes_string(fill = input$response_var_map)) +
    geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
     labs(x = "", y = "", fill = "State") +
   geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
@@ -386,5 +386,22 @@ renderPlotly({
 ```
 
 
+Sidebar {.sidebar data-width = 200}
+-----------------------------------------------------------------------
+
+```{r}
+#widgets for the map of australia 
+
+sliderInput("point_transp", label = h3("Point Transparency"), min = 0, 
+        max = 5, value = 1, step = 0.1)
+
+sliderInput("point_size", label = "Point size:",
+             min = 0.5, max = 3, value = 2, step = 0.5)
+
+radioButtons("response_var_map", label = h3("Response Variable:"), 
+    choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+
+
+```
 
 
