@@ -18,6 +18,7 @@ library(flexdashboard)
 library(dplyr)
 library(plotly)
 library(stringr)
+library(knitr)
 
 shark <- read.csv("Shark Dataset.csv")
 
@@ -60,6 +61,39 @@ selectInput("provoke_EL", label = "Do you provoke the shark?",
 ```
 
 Data source: Australian Shark-Incident Database
+
+There is only a photo of a white shark now, but i can add an if statement and more sharks later with a blurb maybe? i'm having real troubles adding a conditional textbox hough
+
+```{r picture, echo = F, out.width = '100%'}
+include_graphics("white shark .jpg") # this is just a consistent graphic because i was testing thing
+
+```
+
+```{r}
+
+renderImage({
+    if(input$shark_species_EL == "all"){
+
+    } else {
+        list(
+          src = file.path(paste(input$shark_species_EL, ".jpg")),
+          contentType = "image/jpeg",
+          width = 275,
+          height = 200,
+          alt = "Picture of a white shark"
+        )
+    }
+  }, deleteFile = FALSE)
+
+renderPrint({ 
+  if(input$shark_species_EL == "all"){
+
+    } else {
+      paste( input$shark_species_EL)
+    }
+})
+
+```
 
 Row
 -----------------------------------------------------------------------
@@ -288,7 +322,7 @@ ggplot(shark_year, aes(x = Incident.year, attack_count)) +
   geom_line( color = "steelblue") +
   geom_point( color = "steelblue", size = 1 ) +
   geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
-  labs(title = paste("How has the", input$shark_species_EL, "attacks changed with time?"),
+  labs(title = paste("How has the ", input$shark_species_EL, " attacks changed with time?"),
        x = "Time (years)",
        y = "Number of attacks") +
   theme(legend.position="none")
@@ -318,15 +352,3 @@ ggplot(shark_year, aes(x = Incident.year, attack_count)) +
 ```
 
 
-Page 2
-=====================================  
-
-Row
------------------------------------------------------------------------
-
-Another sidebar, for interaction controls...
-
-Row
------------------------------------------------------------------------
-
-Another area, for interactive graphs and text boxes...
