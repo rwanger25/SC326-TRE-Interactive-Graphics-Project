@@ -41,30 +41,102 @@ Data source: Australian Shark-Incident Database
 
 Row
 -----------------------------------------------------------------------
-### plot
 
-unfortunately this body part polygon doesn't work with plotly so i haven't figured out a way to combine it with plotly. i plan to clean the data from the shark dataset and add it to the body though
+### so...
+unfortunately this body part polygon doesn't work with plotly so i haven't figured out a way to combine it with plotly. it's really hard to see what values are what without plotly, and i don't know how to make them better, maybe add a bar chart next to it or something? also missing interactive aspect
+
+### plot
 
 ```{r}
 renderPlot({
-dat <- bdgramr(data = data, model = "basic_male")
+  
+body_polygon <- bdgramr(data = data, model = "basic_male")
 
-ggplot(data = dat, aes(x,y, group = Id)) +
-  geom_bdgramr(color = "cyan", aes(fill = Muscle)) +
+body_injury <- shark %>%
+  mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
+         body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
+         body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
+         body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4])
+
+body_1 <- body_injury %>% 
+  group_by(body_1) %>% 
+  rename(body = body_1) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_2 <- body_injury %>% 
+  group_by(body_2) %>% 
+  rename(body = body_2) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_3 <- body_injury %>% 
+  group_by(body_3) %>% 
+  rename(body = body_3) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_4 <- body_injury %>% 
+  group_by(body_4) %>% 
+  rename(body = body_4) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_12 <- rbind(body_1, body_2)
+body_123 <- rbind(body_12, body_3)
+body_1234 <- rbind(body_123, body_4)
+
+body_total <- body_1234 %>% 
+  group_by(body) %>%
+  summarize(Number_injury = sum(sum)) %>% 
+  mutate(body = ifelse(body == "left leg", "leg", body),
+         body = ifelse(body == "left foot", "foot", body),
+         overall = case_when(body == "ankle" ~ "foot",
+                            body == "calf" ~ "leg",
+                            body == "hand" ~ "arm",
+                            body == "leg" ~ "leg",
+                            body == "other: half of body recovered" ~ "",
+                            body == "other: uninjured" ~ "",
+                            body == "right" ~ "",
+                            body == "shoulder " ~ "shoulder",
+                            body == "torso" ~ "torso",
+                            body == "arm" ~ "arm",
+                            body == "foot" ~ "foot",
+                            body == "head" ~ "head",
+                            body == "other: body not recovered" ~ "torso",
+                            body == "other: multiple bites" ~ "torso",
+                            body == "pelvic region" ~ "pelvic region",
+                            body == "shoulder" ~ "shoulder",
+                            body == "thigh" ~ "leg")) %>% 
+  filter(overall != "") 
+
+body_polygon <- bdgramr(data = data, model = "basic_male") %>% 
+  mutate(body = case_when(Muscle == "Head" ~ "head",
+                          Muscle == "Pectoral" ~ "shoulder",
+                          Muscle == "Intercostal" ~ "torso",
+                          Muscle == "Abdominal" ~ "pelvic region",
+                          Muscle == "Quadriceps" ~ "thigh",
+                          Muscle == "Foot" ~ "foot",
+                          Muscle == "Shoulder" ~ "shoulder",
+                          Muscle == "Lower_back" ~ "torso",
+                          Muscle == "Hamstring" ~ "thigh",
+                          Muscle == "Clavicle" ~ "neck",
+                          Muscle == "Arm" ~ "arm",
+                          Muscle == "Forearm" ~ "arm",
+                          Muscle == "Hand" ~ "hand",
+                          Muscle == "Shin" ~ "calf",
+                          Muscle == "Neck" ~ "neck",
+                          Muscle == "Upper_back" ~ "torso",
+                          Muscle == "Gluteus_Maximus" ~ "pelvic region",
+                          Muscle == "Calf" ~ "calf"))
+
+body_combine <- full_join(body_polygon, body_total, by = "body", relationship = "many-to-many")
+
+
+ggplot(data = body_combine, aes(x,y, group = Id)) +
+  geom_bdgramr(color = "cyan", aes(fill = Number_injury)) +
+  scale_fill_gradient( low = "blue", high = "red" ) +
   labs(title = "BdygramR: original_male diagram")
 
 })
 ```
-
-Page 2
-=====================================  
-
-Row
------------------------------------------------------------------------
-
-Another sidebar, for interaction controls...
-
-Row
------------------------------------------------------------------------
-
-Another area, for interactive graphs and text boxes...
