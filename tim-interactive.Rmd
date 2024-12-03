@@ -11,8 +11,8 @@ library(lubridate)
 library(dplyr)
 library(ggplot2)
 library(shiny)
-library(readxl)
 library(tidyr)
+library(plotly)
 ```
 
 What Activities Put You at the Highest Risk of Shark Attacks?
@@ -32,16 +32,32 @@ Column
 ### What Activities Put You at the Highest Risk of Shark Attacks?
 
 ```{r}
-sharks_act <- read_excel("sharks.xlsx", sheet = 1)
+sharks_act <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
 sharks_act <- sharks_act %>%
   select(Victim.activity, Victim.gender, Victim.age)
 sharks_act$age <- cut(sharks_act$Victim.age, breaks = c(0, 10, 20, 30, 40, 50, 60, Inf), labels = c("0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60+"), right = FALSE)
 
-sharks_act <- sharks_act %>%
-  drop_na(Victim.activity)
+sharks_act <- sharks_act[-which(sharks_act$Victim.activity == ""), ]
+sharks_act[sharks_act == "boarding"] <- "Boarding"
+sharks_act[sharks_act == "diving"] <- "Diving"
+sharks_act[sharks_act == "diving, collecting"] <- "Diving"
+sharks_act[sharks_act == "fishing"] <- "Fishing"
+sharks_act[sharks_act == "motorised boating"] <- "Boating"
+sharks_act[sharks_act == "other: hull scraping"] <- "Other"
+sharks_act[sharks_act == "other: jetskiing; swimming"] <- "Other"
+sharks_act[sharks_act == "other: standing in water"] <- "Standing in Water"
+sharks_act[sharks_act == "other:floating"] <- "Swimming"
+sharks_act[sharks_act == "paddleboarding"] <- "Boarding"
+sharks_act[sharks_act == "snorkeling"] <- "Snorkeling"
+sharks_act[sharks_act == "snorkelling"] <- "Snorkeling"
+sharks_act[sharks_act == "spearfishing"] <- "Spearfishing"
+sharks_act[sharks_act == "surfing"] <- "Boarding"
+sharks_act[sharks_act == "swimming"] <- "Swimming"
+sharks_act[sharks_act == "unmotorised boating"] <- "Boating"
+sharks_act[sharks_act == "wing foiler"] <- "Other"
 
-renderPlot({
+renderPlotly({
   if(input$gender_button == "all")
     {
     sharks_act_filtered_v1 <- sharks_act
@@ -95,7 +111,8 @@ renderPlot({
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(age == "60+")
     }
-  ggplot(sharks_act_filtered, aes(x = Victim.activity)) + geom_bar() + labs(x = "Activity", y = "Number of Shark Attacks")})
+  p_act <- ggplot(sharks_act_filtered, aes(x = Victim.activity)) + geom_bar() + labs(x = "Activity", y = "Number of Shark Attacks")
+  ggplotly(p_act)})
 ```
 
 When Should You Swim?
@@ -114,7 +131,7 @@ Column
 ### When Should You Swim?
 
 ```{r}
-sharks_time <- read_excel("sharks.xlsx", sheet = 1)
+sharks_time <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
 sharks_time <- sharks_time %>%
   select(Incident.month, Time.of.incident)
@@ -129,17 +146,26 @@ sharks_time_hour <- sharks_time %>%
   group_by(Time.of.incident) %>%
   summarise(count_hour = n())
 
+for (n in seq(0, 2300, by = 100))
+{
+  if (!n %in% sharks_time_hour$Time.of.incident)
+  {
+    sharks_time_hour <- rbind(sharks_time_hour, c(n, 0))
+  }
+}
+
 sharks_time_hour <- sharks_time_hour %>%
   drop_na(Time.of.incident)
 
-renderPlot({
+renderPlotly({
   if(input$time_button == "month")
     {
-    ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point() + geom_line() + labs(x = "Month", y = "Number of Shark Attacks")
+    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point() + geom_line() + labs(x = "Month", y = "Number of Shark Attacks")
     }
   else
     {
-    ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour)) + geom_point() + geom_line() + labs(x = "Time of Day", y = "Number of Shark Attacks")
+    p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour)) + geom_point() + geom_line() + labs(x = "Time of Day", y = "Number of Shark Attacks")
     }
+  ggplotly(p_time)
   })
 ```
