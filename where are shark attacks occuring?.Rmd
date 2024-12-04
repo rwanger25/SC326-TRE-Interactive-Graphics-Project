@@ -6,7 +6,10 @@ runtime: shiny
 
 # Loading in the Data and Packages
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
-shark_attacks <- read.csv("Shark Dataset.csv")
+shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv")
+                          #"Shark Dataset.csv
+
+
 
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
@@ -18,10 +21,20 @@ library(ggplot2)
 library(shiny)
 library(tidyr)
 library(stringr)
+library(tidyverse)
 
 #shapefiles
 library(sf)
 library(maps)
+
+
+# reading in the Australian state shapefiles
+
+aus_shp <-st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp", stringsAsFactors=FALSE, quiet=TRUE)
+#save(aus_shp, file="./aus_shp.RData")
+#load("aus_shp.RData")
+
+tourist_regions <-st_read("./TR_2021_AUST_GDA94_SHP/TR_2021_AUST_GDA94.shp", stringsAsFactors=FALSE, quiet=TRUE)
 
 ```
 
@@ -82,6 +95,22 @@ shark_attacks <- shark_attacks %>%
 
 
 ```{r}
+
+#calculating the counts for each location
+
+shark_attacks <- shark_attacks %>%
+  mutate(State_full = case_when(State == "SA" ~ "South Australia",
+                                State == "TAS" ~ "Tasmania",
+                                State == "VIC" ~ "Victoria",
+                                State == "WA" ~ "Western Australia",
+                                State == "QLD" ~ "Queensland",
+                                State == "NSW" ~ "New South Wales",
+                                State == "NT" ~ "Northern Territory"))
+
+```
+
+
+```{r}
 #loading in the sf data
 
 #removing the spaces in the latitude and longitude data that causes errors
@@ -89,7 +118,9 @@ shark_attacks_fixed_latlon <- shark_attacks %>%
   mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
   mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
   mutate(Latitude = as.numeric(Latitude)) %>%
-  mutate(Longitude = as.numeric(Longitude))
+  mutate(Longitude = as.numeric(Longitude)) %>%
+  filter(is.na(Latitude) == F) %>%
+  filter(is.na(Longitude) == F)
 
 
 # To make the map with points
@@ -97,8 +128,6 @@ shark_attacks_sf <- shark_attacks_fixed_latlon %>%
   st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
   st_transform(crs = 3577)
 
-# reading in the Australian state shapefiles
-aus_shp <- st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
 
 #crop the australia polygon 
 aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)   
@@ -106,28 +135,110 @@ aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) 
 #aus_shp <- aus_shp$geometry #assigning only the geometry of the states
 aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
 
+#filtering out other territories
+aus_shp <- aus_shp %>%
+  filter(STE_NAME21 != "Other Territories")
+
 
 #plotting the australia map
 ggplot()+
   geom_sf(data = shark_attacks_sf, color = "red") + 
-  geom_sf(data = aus_shp)
+  geom_sf(data = aus_shp$geometry)
 
-aus_shp <-st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp", stringsAsFactors=FALSE, quiet=TRUE)
-save(aus_shp, file="./aus_shp.RData")
-load("aus_shp.RData")
 
 ```
 
+plotting
+
 ```{r}
 
-renderPlotly({
-  map <- ggplot()+
-    geom_sf(data = shark_attacks_sf, color = "red") + 
-    geom_sf(data = aus_shp)
-  
-  ggplotly(map)
+#plotting the australia map
+ggplot()+
+  geom_sf(data = shark_attacks_sf, aes(color = Incident.year)) +
+  geom_sf(data = aus_shp$geometry)
 
-)}
 
+```
+
+
+```{r}
+
+#creating a dataframe for counts and proportions by state
+shark_attacks_counts_state <- shark_attacks %>%
+  group_by(State_full) %>%
+  summarise(count_attacks_state = n(), 
+            total_attacks = nrow(shark_attacks),
+            proportion_attacks_state = count_attacks_state / total_attacks, 
+            std_error_attacks_state = sqrt(proportion_attacks_state * (1-proportion_attacks_state) / total_attacks),  #  compute standard error of each proportion
+         lower_attacks_state = proportion_attacks_state - 1.96 * std_error_attacks_state,  #  compute CI lower bound
+         upper_attacks_state = proportion_attacks_state + 1.96 * std_error_attacks_state)
+
+#creating a dataframe for counts and proportions by site category
+shark_attacks_counts_site <- shark_attacks %>%
+  group_by(Site.category) %>%
+  summarise(count_attacks_site = n(), 
+            total_attacks = nrow(shark_attacks),
+            proportion_attacks_site = count_attacks_site / total_attacks, 
+            std_error_attacks_site = sqrt(proportion_attacks_site * (1-proportion_attacks_site) / total_attacks),  #  compute standard error of each proportion
+         lower_site = proportion_attacks_site - 1.96 * std_error_attacks_site,  #  compute CI lower bound
+         upper_site = proportion_attacks_site + 1.96 * std_error_attacks_site) %>%
+  filter(is.na(Site.category) == F)
+
+#creating a dataframe for counts and proportions by location
+shark_attacks_counts_location <- shark_attacks %>%
+  group_by(Location) %>%
+  summarise(count_attacks_location = n(), 
+            total_attacks = nrow(shark_attacks),
+            proportion_attacks_location = count_attacks_location / total_attacks, 
+            std_error_attacks_location = sqrt(proportion_attacks_location * (1-proportion_attacks_location) / total_attacks),  #  compute standard error of each proportion
+         lower_location = proportion_attacks_location - 1.96 * std_error_attacks_location,  #  compute CI lower bound
+         upper_location = proportion_attacks_location + 1.96 * std_error_attacks_site) %>%
+  filter(is.na(std_error_attacks_location) == F)
+            
+
+
+#barcharts by area
+
+#state
+
+#counts by state
+ggplot(data = shark_attacks_counts_state, aes(x = fct_rev(fct_reorder(State_full, count_attacks_state,  .desc = T)), y =count_attacks_state, fill = State_full)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "States", fill = "States", y = "Number of Shark Attacks") + 
+  coord_flip() 
+
+#proportions by state
+ggplot(data = shark_attacks_counts_state, aes(x = fct_rev(fct_reorder(State_full, proportion_attacks_state,  .desc = T)), y = proportion_attacks_state, fill = State_full)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "States", fill = "States", y = "Proportion of Shark Attacks") + 
+  coord_flip() 
+
+#site category
+
+#counts by site category
+ggplot(data = shark_attacks_counts_site, aes(x = fct_rev(fct_reorder(Site.category, count_attacks_site,  .desc = T)), y =count_attacks_site, fill = Site.category)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "Site Category", fill = "Site Category", y = "Number of Shark Attacks") + 
+  coord_flip() 
+
+#proportions by site category
+ggplot(data = shark_attacks_counts_site, aes(x = fct_rev(fct_reorder(Site.category, proportion_attacks_site,  .desc = T)), y = proportion_attacks_site, fill = Site.category)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "Site Category", fill = "Site Category", y = "Proportion of Shark Attacks") + 
+  coord_flip() 
+
+#location
+
+#counts by location
+ggplot(data = shark_attacks_counts_site, aes(x = fct_rev(fct_reorder(Site.category, count_attacks_site,  .desc = T)), y =count_attacks_site, fill = Site.category)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "Site Category", fill = "Site Category", y = "Number of Shark Attacks") + 
+  coord_flip() 
+
+#proportions by location
+ggplot(data = shark_attacks_counts_site, aes(x = fct_rev(fct_reorder(Site.category, proportion_attacks_site,  .desc = T)), y = proportion_attacks_site, fill = Site.category)) +
+  geom_bar(stat = "identity") + 
+  labs(x = "Site Category", fill = "Site Category", y = "Proportion of Shark Attacks") + 
+  coord_flip() 
 
 ```

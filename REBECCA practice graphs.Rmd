@@ -10,8 +10,14 @@ runtime: shiny
 ```{r}
 ## Actually running and deploying the app
 
-#running the demo app
-#runApp()
+
+# #running the demo app
+# library(rsconnect)
+# rsconnect::setAccountInfo(name='ter1',
+# 			  token='0163EF6118B243DE8D0042631C039930',
+# 			  secret='rvvnmpSjrYZ8H/YL2sWWCZd71FQwVbamEkFlag8Z')
+# runApp()
+# deployApp()
 
 ```
 
@@ -94,7 +100,7 @@ shark_attacks <- shark_attacks %>%
                           (Incident.year > 1850 & Incident.year <= 1900) ~ "1850-1900",
                           (Incident.year > 1900 & Incident.year <= 1950) ~ "1900-1950",
                           (Incident.year > 1950 & Incident.year <= 2000) ~ "1950-2000",
-                          (Incident.year > 2000 & Incident.year <= 2022) ~ "2000-2022")) 
+                          (Incident.year > 2000 & Incident.year <= 2024) ~ "2000-2024")) 
 
 #counting the number of sharks every 50 years
 shark_attacks <- shark_attacks %>%
@@ -221,7 +227,9 @@ shark_attacks_fixed_latlon <- shark_attacks %>%
   mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
   mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
   mutate(Latitude = as.numeric(Latitude)) %>%
-  mutate(Longitude = as.numeric(Longitude))
+  mutate(Longitude = as.numeric(Longitude)) %>%
+  filter(is.na(Latitude) == F) %>%
+  filter(is.na(Longitude) == F)
 
 
 # To make the map with points
@@ -356,6 +364,25 @@ checkboxInput("error_bar", label = h4("Include Error Bar"))
 Where are Shark Attacks Occuring?
 =====================================  
 
+Sidebar {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+#widgets for the map of australia 
+
+# sliderInput("point_transp", label = h3("Point Transparency"), min = 0, 
+#         max = 5, value = 1, step = 0.1)
+# 
+# sliderInput("point_size", label = "Point size:",
+#              min = 0.5, max = 3, value = 2, step = 0.5)
+
+radioButtons("response_var_map", label = h3("Response Variable:"),
+    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+
+#"Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", 
+
+```
+
 Column 
 -----------------------------------------------------------------------
 
@@ -366,17 +393,16 @@ shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
 
 renderPlotly({
   map <- ggplot()+
-    geom_sf(data = shark_attacks_sf, color = "red", alpha = input$point_transp, size = input$point_size, aes_string(fill = input$response_var_map)) +
-   geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
+    geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
     labs(x = "", y = "", fill = "State") +
-  geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
-  geom_sf(data = shark_attacks_sf, aes(text = paste0("Date: ", Incident.year,
+    geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
+    geom_sf(data = shark_attacks_sf, aes_string(fill = input$response_var_map),
+            aes(text = paste0("Date: ", Incident.year,
                       "<br>Location: ", Location,
                       "<br>Victim Activity: ", Victim.activity,
                       "<br>Injury: ", Victim.injury,
-                      "<br>Site Category: ", Site.category)),
-    color = "red",
-    size = 2)
+                      "<br>Site Category: ", Site.category)), 
+          size = 1.5)
   
   return(ggplotly(map))
 
@@ -386,22 +412,6 @@ renderPlotly({
 ```
 
 
-Sidebar {.sidebar data-width = 200}
------------------------------------------------------------------------
 
-```{r}
-#widgets for the map of australia 
-
-sliderInput("point_transp", label = h3("Point Transparency"), min = 0, 
-        max = 5, value = 1, step = 0.1)
-
-sliderInput("point_size", label = "Point size:",
-             min = 0.5, max = 3, value = 2, step = 0.5)
-
-radioButtons("response_var_map", label = h3("Response Variable:"), 
-    choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
-
-
-```
 
 

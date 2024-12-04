@@ -6,7 +6,7 @@ runtime: shiny
 
 # Loading in the Data and Packages
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
-shark_attacks <- read.csv("Shark Dataset.csv")
+shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv") #Shark Dataset.csv
 
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
