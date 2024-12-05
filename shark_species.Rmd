@@ -66,11 +66,6 @@ Data source: Australian Shark-Incident Database
 
 There is only a photo of a white shark now, but i can add an if statement and more sharks later with a blurb maybe? i'm having real troubles adding a conditional textbox hough
 
-```{r picture, echo = F, out.width = '100%'}
-include_graphics("white shark .jpg") # this is just a consistent graphic because i was testing thing
-
-```
-
 ```{r}
 
 renderImage({
@@ -80,20 +75,12 @@ renderImage({
         list(
           src = file.path(paste(input$shark_species_EL, ".jpg")),
           contentType = "image/jpeg",
-          width = 275,
-          height = 200,
-          alt = "Picture of a white shark"
+          width = 230,
+          alt = "Picture of a shark"
         )
     }
   }, deleteFile = FALSE)
 
-renderPrint({ 
-  if(input$shark_species_EL == "all"){
-
-    } else {
-      paste( input$shark_species_EL)
-    }
-})
 
 ```
 
@@ -197,7 +184,7 @@ renderValueBox({
 })
 ```
 
-### Number of Deaths in this Situation
+### Number of Deaths
 ```{r}
 
 fatal_percent <- shark %>% 
@@ -278,12 +265,10 @@ renderPlotly({ #going into the if statements
   summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
   mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
     
-bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
-  geom_point() +
-  scale_size(range = c(1, 4), name="Number of Attacks)") +
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
+  geom_point(size = 3) +
   scale_colour_gradient(low = "steelblue", high = "red") +
-  scale_x_log10() +
-  labs(x = "Number of Attacks per Species (log10 scale)",
+  labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
        title = "Which Shark Species Attack is Most Common and Fatal?")
@@ -298,12 +283,10 @@ ggplotly(bubble, tooltip="text") #plotly graph
         filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
   mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
     
-bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
-  geom_point() +
-  scale_size(range = c(1, 4), name="Number of Attacks)") +
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
+  geom_point(size = 3) +
   scale_colour_gradient(low = "steelblue", high = "red") +
-  scale_x_log10() +
-  labs(x = "Number of Attacks per Species (log10 scale)",
+  labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
        title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL))
@@ -314,37 +297,45 @@ ggplotly(bubble, tooltip="text") #plotly graph
 } else { # if the shark species is not all
   if(input$provoke_EL == "both") { # and they both provoke and unprovoke
 
-shark_year <- shark %>% 
-  group_by(Incident.year, Shark.common.name, Provoked.unprovoked) %>% 
-  filter( Shark.common.name != "") %>% 
-  summarize(attack_count = n()) %>% 
-  filter(Shark.common.name == input$shark_species_EL)
+    shark_final <- shark_bubble %>% 
+  group_by(Shark.common.name) %>% #only grouping by shark species
+  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
+  
+shark_final_highlight <- shark_final %>% 
+  filter(Shark.common.name == str_to_title(input$shark_species_EL))
+    
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
+  geom_point() +
+  geom_point(data = shark_final_highlight, size = 5) +
+  scale_colour_gradient(low = "steelblue", high = "red") +
+  labs(x = "Number of Attacks per Species",
+       y = "Shark Common Names",
+       color = "Percent fatality",
+       title = "Which Shark Species Attack is Most Common and Fatal?")
 
-ggplot(shark_year, aes(x = Incident.year, attack_count)) +
-  geom_line( color = "steelblue") +
-  geom_point( color = "steelblue", size = 1 ) +
-  geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
-  labs(title = paste("How has the ", input$shark_species_EL, " attacks changed with time?"),
-       x = "Time (years)",
-       y = "Number of attacks") +
-  theme(legend.position="none")
+ggplotly(bubble, tooltip="text") #plotly graph
     
   } else { # and they either provoke or unprovoke
+    shark_final <- shark_bubble %>%
+  group_by(Shark.common.name, Provoked.unprovoked) %>%
+  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
+        filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
+    
+shark_final_highlight <- shark_final %>% 
+  filter(Shark.common.name == str_to_title(input$shark_species_EL))
+    
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
+  geom_point() +
+  geom_point(data = shark_final_highlight, size = 5) +
+  scale_colour_gradient(low = "steelblue", high = "red") +
+  labs(x = "Number of Attacks per Species",
+       y = "Shark Common Names",
+       color = "Percent fatality",
+       title = "Which Shark Species Attack is Most Common and Fatal?")
 
-shark_year <- shark %>% 
-  group_by(Incident.year, Shark.common.name, Provoked.unprovoked) %>% 
-  filter( Shark.common.name != "") %>% 
-  summarize(attack_count = n()) %>% 
-  filter(Shark.common.name == input$shark_species_EL, Provoked.unprovoked == input$provoke_EL)
-
-ggplot(shark_year, aes(x = Incident.year, attack_count)) +
-  geom_line( color = "steelblue") + 
-  geom_point( color = "steelblue", size = 1) +
-  geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) + 
-  labs(title = paste("How has the", input$provoke_EL, input$shark_species_EL, "attacks changed with time?"),
-       x = "Time (years)",
-       y = "Number of attacks") +
-  theme(legend.position="none")
+ggplotly(bubble, tooltip="text") #plotly graph
     
   } 
 }
@@ -365,14 +356,17 @@ renderPlotly({ #going into the if statements
     shark_final <- shark_bubble %>% 
   group_by(Shark.common.name) %>% #only grouping by shark species
   summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
-  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>% 
+        filter(Shark.common.name == "White Shark"| 
+                 Shark.common.name == "Tiger Shark" | 
+                 Shark.common.name == "Wobbegong" | 
+                 Shark.common.name == "Bull Shark")
     
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
   geom_point() +
   scale_size(range = c(1, 4), name="Number of Attacks)") +
   scale_colour_gradient(low = "steelblue", high = "red") +
-  scale_x_log10() +
-  labs(x = "Number of Attacks per Species (log10 scale)",
+  labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
        title = "Which Shark Species Attack is Most Common and Fatal?")
@@ -385,14 +379,17 @@ ggplotly(bubble, tooltip="text") #plotly graph
   group_by(Shark.common.name, Provoked.unprovoked) %>%
   summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
         filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
-  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>%
+      filter(Shark.common.name == "White Shark"| 
+               Shark.common.name == "Tiger Shark" | 
+               Shark.common.name == "Wobbegong" | 
+               Shark.common.name == "Bull Shark")
     
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
   geom_point() +
-  scale_size(range = c(1, 4), name="Number of Attacks)") +
+  scale_size(range = c(1, 10), name="Number of Attacks)") +
   scale_colour_gradient(low = "steelblue", high = "red") +
-  scale_x_log10() +
-  labs(x = "Number of Attacks per Species (log10 scale)",
+  labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
        title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL))
@@ -442,7 +439,79 @@ ggplot(shark_year, aes(x = Incident.year, attack_count)) +
 })
 ```
 
-Which body part should you be careful for the most?
+### Shark Length
+```{r}
+renderPlot({ #going into the if statements
+
+  if (input$shark_species_EL == "all") { #if the shark species is all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+    
+    fatal_shark <- shark %>% 
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal"))
+    
+  ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
+  geom_boxplot( ) +
+  geom_rug( aes(color = fatal)) +
+  theme(legend.position = "none") +
+  labs(x = "Fatal or Non-Fatal Attack",
+       y = "Shark Length (m)",
+       title = "Are Longer Sharks More Fatal?")
+    
+  } else { # and they either provoke or unprovoke
+    
+  fatal_shark <- shark %>% 
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>%
+    filter(Provoked.unprovoked == input$provoke_EL) # only taking the provoked or unprovoked options
+
+  ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
+  geom_boxplot( ) +
+  geom_rug( aes(color = fatal)) +
+  theme(legend.position = "none") +
+  labs(x = "Fatal or Non-Fatal Attack",
+       y = "Shark Length (m)",
+       title = "Are Longer Sharks More Fatal?")
+  } 
+} else { # if the shark species is not all
+  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
+
+  fatal_shark <- shark %>% 
+    mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>%
+      filter(Shark.common.name == input$shark_species_EL)
+
+
+    
+  ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
+  geom_boxplot( ) +
+  geom_rug( aes(color = fatal)) +
+  theme(legend.position = "none") +
+  labs(x = "Fatal or Non-Fatal Attack",
+       y = "Shark Length (m)",
+       title = "Are Longer Sharks More Fatal?")
+  
+  } else { # and they either provoke or unprovoke
+    
+fatal_shark <- shark %>% 
+  mutate(fatal = ifelse(Victim.injury == "fatal", "fatal", "not fatal")) %>%
+    filter(Provoked.unprovoked == input$provoke_EL) %>%  # only taking the provoked or unprovoked options
+    filter(Shark.common.name == input$shark_species_EL)
+
+
+    
+  ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
+  geom_boxplot( ) +
+  geom_rug( aes(color = fatal)) +
+  theme(legend.position = "none") +
+  labs(x = "Fatal or Non-Fatal Attack",
+       y = "Shark Length (m)",
+       title = "Are Longer Sharks More Fatal?")
+  } 
+}
+
+
+})
+```
+
+Which body part are you most likely to injure?
 =====================================  
 
 ```{r global_2, include=FALSE, warning=FALSE, message=FALSE}
@@ -464,33 +533,192 @@ Column {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
-selectInput("injured_EL", label = "Which part of your body do you want to watch out for?", 
-            choices =  c("Arms" = "arms",
-                         "Legs" = "legs"))
+selectInput("gender_EL", label = "Select a gender", 
+            choices =  c("All" = "all",
+                         "Male" = "male",
+                         "Female" = "female"))
+
+sliderInput("age_EL", label = "Select your age",
+            min = 0, max = 75, value = 30, step = 1)
+
+radioButtons("bar_EL", "Bar Chart type",
+               c("Bar chart of all age ranges" = "all",
+                 "Bar chart of your age range" = "specific"))
 
 
 ```
 
 Data source: Australian Shark-Incident Database
 
-Row
+Row {data-height=100}
 -----------------------------------------------------------------------
 
-### so...
-unfortunately this body part polygon doesn't work with plotly so i haven't figured out a way to combine it with plotly. it's really hard to see what values are what without plotly, and i don't know how to make them better, maybe add a bar chart next to it or something? also missing interactive aspect
+### Looks like...
+Watch out for your legs! They seem to be the most common part of the body injured by people.
 
-### plot
+Row 
+-----------------------------------------------------------------------
+### Body part injuries by age chunk
 
 ```{r}
 renderPlot({
   
-body_polygon <- bdgramr(data = data, model = "basic_male")
+body_injury <- shark %>%
+  mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
+         body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
+         body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
+         body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4],
+         age_range = case_when(Victim.age <= 10 ~ "0-10", 
+                              (10 < Victim.age) & (Victim.age <= 20)  ~ "11-20",
+                              (20 < Victim.age) & (Victim.age <= 30)  ~ "21-30",
+                              (30 < Victim.age) & (Victim.age <= 40)  ~ "31-40",
+                              (40 < Victim.age) & (Victim.age <= 50)  ~ "41-50",
+                              (50 < Victim.age) & (Victim.age <= 60)  ~ "51-60",
+                              (60 < Victim.age) & (Victim.age <= 70)  ~ "61-70",
+                              (70 < Victim.age) & (Victim.age <= 75)  ~ "71-75",
+                              Victim.age == " "                ~ NA)) 
+if (input$gender_EL == "all") { #if it's all genders
+  
+} else { #if it's a specific gender
+  body_injury <- body_injury %>% 
+    filter(Victim.gender == input$gender_EL)
+}
+
+body_1 <- body_injury %>% 
+  group_by(body_1, age_range) %>% 
+  rename(body = body_1) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_2 <- body_injury %>% 
+  group_by(body_2, age_range) %>% 
+  rename(body = body_2) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_3 <- body_injury %>% 
+  group_by(body_3, age_range) %>% 
+  rename(body = body_3) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_4 <- body_injury %>% 
+  group_by(body_4, age_range) %>% 
+  rename(body = body_4) %>% 
+  filter(body != "") %>% 
+  summarize(sum = n())
+
+body_12 <- rbind(body_1, body_2)
+body_123 <- rbind(body_12, body_3)
+body_1234 <- rbind(body_123, body_4)
+
+body_total <- body_1234 %>% 
+  group_by(body, age_range) %>%
+  mutate(body = ifelse(body == "left leg", "leg", body),
+         body = ifelse(body == "left foot", "foot", body)) %>% 
+  summarize(Number_injury = sum(sum)) %>% 
+  mutate(overall = case_when(body == "ankle" ~ "foot",
+                            body == "calf" ~ "leg",
+                            body == "hand" ~ "arm",
+                            body == "leg" ~ "leg",
+                            body == "other: half of body recovered" ~ "",
+                            body == "other: uninjured" ~ "",
+                            body == "right" ~ "",
+                            body == "shoulder " ~ "shoulder",
+                            body == "torso" ~ "torso",
+                            body == "arm" ~ "arm",
+                            body == "foot" ~ "foot",
+                            body == "head" ~ "head",
+                            body == "other: body not recovered" ~ "",
+                            body == "other: multiple bites" ~ "",
+                            body == "pelvic region" ~ "pelvic region",
+                            body == "shoulder" ~ "shoulder",
+                            body == "thigh" ~ "leg"),
+         body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>% 
+  filter(overall != "" ) %>% 
+  na.omit()
+
+final_body_bar <- body_total %>% 
+    group_by(age_range) %>% 
+  filter(Number_injury == max(Number_injury))
+
+final_body_bar$age_range <- factor(final_body_bar$age_range, levels = c("0-10", "11-20", "21-30", "31-40", "41-50", "51-60", "61-70", "71-75"))
+
+body_bar <- ggplot(final_body_bar, aes(x = age_range, y = Number_injury, fill = body)) +
+  geom_col() +
+  labs(x = "Age Range",
+       y = "Number of Injuries for this Body Part",
+       title = "Which Body Part was Most Injured by Age Ranges?",
+       fill = "Body Part Injured")
+
+if (input$bar_EL == "all") { #if it's all barchart
+    
+ specific_age <- final_body_bar %>% 
+  filter(age_range == case_when(input$age_EL <= 10 ~ "0-10", 
+                              (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
+                              (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
+                              (30 < input$age_EL) & (input$age_EL <= 40)  ~ "31-40",
+                              (40 < input$age_EL) & (input$age_EL <= 50)  ~ "41-50",
+                              (50 < input$age_EL) & (input$age_EL <= 60)  ~ "51-60",
+                              (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
+                              (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
+
+body_bar + geom_col(data = specific_age, color = "red", size = 1.5) + 
+  guides(color = "none")
+  
+} else { #if it's a specific age barchart
+
+body_total_age <- body_total %>% 
+  group_by(body) %>% 
+  filter(age_range == case_when(input$age_EL <= 10 ~ "0-10", 
+                               (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
+                               (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
+                               (30 < input$age_EL) & (input$age_EL <= 40)  ~ "31-40",
+                               (40 < input$age_EL) & (input$age_EL <= 50)  ~ "41-50",
+                               (50 < input$age_EL) & (input$age_EL <= 60)  ~ "51-60",
+                               (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
+                               (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
+
+body_bar <- ggplot(body_total_age, aes(x = reorder(body, Number_injury), y = Number_injury)) +
+  geom_col(fill = "steelblue") +
+  labs(x = "Body Part Injured",
+       y = "Number of Injuries for this Body Part",
+       title = paste("Which Body Part was Most Injured in Ages", case_when(input$age_EL <= 10 ~ "0-10", 
+                               (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
+                               (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
+                               (30 < input$age_EL) & (input$age_EL <= 40)  ~ "31-40",
+                               (40 < input$age_EL) & (input$age_EL <= 50)  ~ "41-50",
+                               (50 < input$age_EL) & (input$age_EL <= 60)  ~ "51-60",
+                               (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
+                               (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75")),
+       fill = "Body Part Injured")
+
+body_bar
+}
+
+})
+```
+
+### Data points from your specific age
+
+```{r}
+renderPlot({
+  
+body_polygon <- bdgramr(data = data, model = "basic_male") 
 
 body_injury <- shark %>%
   mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
          body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
          body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
-         body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4])
+         body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4]) %>% 
+    filter(Victim.age == as.numeric(input$age_EL))
+
+if (input$gender_EL == "all") { #if the shark species is all
+  
+} else {
+  body_injury <- body_injury %>% 
+    filter(Victim.gender == input$gender_EL)
+}
 
 body_1 <- body_injury %>% 
   group_by(body_1) %>% 
@@ -570,7 +798,9 @@ body_combine <- full_join(body_polygon, body_total, by = "body", relationship = 
 ggplot(data = body_combine, aes(x,y, group = Id)) +
   geom_bdgramr(color = "cyan", aes(fill = Number_injury)) +
   scale_fill_gradient( low = "blue", high = "red" ) +
-  labs(title = "BdygramR: original_male diagram")
+  labs(title = paste("Which body part was most injured at age", input$age_EL, "?"),
+       caption = "BdygramR: original_male diagram",
+       fill = "Number of Injuries")
 
 })
 ```
