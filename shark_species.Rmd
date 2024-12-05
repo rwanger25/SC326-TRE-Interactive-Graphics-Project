@@ -64,13 +64,16 @@ selectInput("provoke_EL", label = "Do you provoke the shark?",
 
 Data source: Australian Shark-Incident Database
 
-There is only a photo of a white shark now, but i can add an if statement and more sharks later with a blurb maybe? i'm having real troubles adding a conditional textbox hough
-
 ```{r}
 
 renderImage({
     if(input$shark_species_EL == "all"){
-
+      list(
+          src = file.path(paste("shark.jpg")),
+          contentType = "image/jpeg",
+          width = 230,
+          alt = "Picture of a shark"
+        )
     } else {
         list(
           src = file.path(paste(input$shark_species_EL, ".jpg")),
