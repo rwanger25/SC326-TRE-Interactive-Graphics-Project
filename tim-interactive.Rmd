@@ -166,11 +166,21 @@ sharks_time_hour <- sharks_time_hour %>%
 renderPlotly({
   if(input$time_button == "month")
     {
-    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point() + geom_line() + labs(x = "Month", y = "Number of Shark Attacks")
+    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point() + geom_line() + labs(x = "Month", y = "Number of Shark Attacks") + theme(
+    axis.title = element_text(family = "Arial", color = "#0a144a", face = "bold", size = 16),
+    axis.text = element_text(family = "Arial", color = "#0a144a", size = 12),
+    panel.background = element_rect(fill = "#d1d4e3"),
+    plot.background = element_rect(fill = "#d1d4e3"),
+    legend.position = "none")
     }
   else
     {
-    p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour)) + geom_point() + geom_line() + labs(x = "Time of Day", y = "Number of Shark Attacks")
+    p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour)) + geom_point() + geom_line() + labs(x = "Time of Day", y = "Number of Shark Attacks") + theme(
+    axis.title = element_text(family = "Arial", color = "#0a144a", face = "bold", size = 16),
+    axis.text = element_text(family = "Arial", color = "#0a144a", size = 12),
+    panel.background = element_rect(fill = "#d1d4e3"),
+    plot.background = element_rect(fill = "#d1d4e3"),
+    legend.position = "none")
     }
   ggplotly(p_time)
   })
