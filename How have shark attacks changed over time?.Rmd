@@ -104,7 +104,7 @@ shark_attacks_timeline$Incident.month_year
 #start and stop times
 
 start_time <- as.Date("1900-01-01")
-end_time <- as.Date("2022-03-01")
+end_time <- as.Date("2024-03-01")
 
 start.end <- c(start_time,end_time)
 start.end
@@ -512,11 +512,51 @@ renderPlotly({
         stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
         theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
     
+    
+    
     return(ggplotly(lineplot_plot))
    
   }
   
 })
+
+lineplot_plot <- ggplot(data = shark_attacks_count,
+                            aes_string(x = "Incident.month_year", y = input$response_var)) +
+        geom_line()+
+        geom_point() +
+        geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
+        labs(x = "Date", y = "Victim Age") +
+        scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) +
+        stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
+shark_attacks_timeline$Incident.month_year
+shark_attacks_count <- shark_attacks_timeline %>%
+  group_by(Incident.month_year) %>%
+  summarise(attack_count = n())
+
+
+shark_attacks_timeline <- shark_attacks %>%
+  mutate(Victim.age = as.ts(Victim.age)) %>% 
+  mutate(Incident.month = as.character(Incident.month)) %>% 
+  mutate(Incident.year = as.character(Incident.year)) %>%
+ # mutate(Incident.month_year = make_date(year = Incident.year, month=Incident.month)) 
+  unite("Incident.month_year", Incident.month, Incident.year, sep = "/", remove = F) %>% #remove = F, na.rm = T
+  mutate(Incident.month_year = paste0("01/", Incident.month_year),
+         Incident.month_year = as.Date(Incident.month_year, format = "%d/%m/%Y"))
+
+shark_attacks_count <- shark_attacks_timeline %>%
+  group_by(Incident.year) %>%
+  summarise(attack_count = n()) %>%
+  mutate(Incident.year = as.Date(Incident.year, format = "%Y"))
+
+ggplot(data = shark_attacks_count,
+                            aes_string(x = "Incident.year", y = "attack_count")) +
+        geom_line()+
+        geom_point() +
+        geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%Y", limits = start.end) +
+  stat_rollapplyr(width = 10, align = "right", linewidth = 1, color = "red") + 
+  labs(x = "Year", y = "Number of Attacks", )
 
 
 ```

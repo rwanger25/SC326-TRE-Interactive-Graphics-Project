@@ -242,3 +242,80 @@ ggplot(data = shark_attacks_counts_site, aes(x = fct_rev(fct_reorder(Site.catego
   coord_flip() 
 
 ```
+
+```{r}
+
+
+#widgets for the barcharts
+
+radioButtons("response_var", label = h3("Attack Characteristic:"), 
+    choices = list("Number of Attacks" = "attack_count", "Victim Age" = "Victim.age", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+
+radioButtons("prop_count", label = h3("Proportions or Count:"), 
+                   choices = list("Proportion" = "prop", "Count" = "count"))
+
+checkboxInput("error_bar", label = h4("Include Error Bar"))
+
+```
+
+
+Where are Shark Attacks Occuring?
+=====================================  
+
+Sidebar {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+#widgets for the map of australia 
+
+# sliderInput("point_transp", label = h3("Point Transparency"), min = 0, 
+#         max = 5, value = 1, step = 0.1)
+# 
+# sliderInput("point_size", label = "Point size:",
+#              min = 0.5, max = 3, value = 2, step = 0.5)
+
+radioButtons("response_var_map", label = h3("Attack Characteristic:"),
+    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+
+#"Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", 
+
+```
+
+Column 
+-----------------------------------------------------------------------
+
+```{r}
+
+aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T
+shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
+
+renderPlotly({
+  map <- ggplot()+
+    geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
+    labs(x = "", y = "", fill = "State") +
+    geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
+    geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", paste(Incident.month, Incident.year, sep = "/"), 
+                      "<br>Location: ", Location,
+                      "<br>Victim Activity:" , Victim.activity,
+                      "<br>Injury Type: ", Victim.injury,
+                      "<br>Victim Gender: ", Victim.gender,
+                      "<br>Site Category: ", Site.category,
+                      "<br>Injury Severity: ", Injury.severity)), 
+          size = 1.5) +
+    scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+
+
+       scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) +
+      interactive_theme
+    
+  
+  return(ggplotly(map))
+
+})
+
+
+```
+
+
+
