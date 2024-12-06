@@ -420,39 +420,55 @@ ggplotly(bubble, tooltip="text") #plotly graph
 } else { # if the shark species is not all
   if(input$provoke_EL == "both") { # and they both provoke and unprovoke
 
-shark_year <- shark %>% 
-  group_by(Incident.year, Shark.common.name, Provoked.unprovoked) %>% 
-  filter( Shark.common.name != "") %>% 
-  summarize(attack_count = n()) %>% 
-  filter(Shark.common.name == input$shark_species_EL)
-
-ggplot(shark_year, aes(x = Incident.year, attack_count)) +
-  geom_line( color = "steelblue") +
-  geom_point( color = "steelblue", size = 1 ) +
-  geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
-  labs(title = paste("How has the ", input$shark_species_EL, " attacks changed with time?"),
-       x = "Time (years)",
-       y = "Number of attacks") +
-  theme(legend.position="none") +
+    shark_final <- shark_bubble %>% 
+  group_by(Shark.common.name) %>% #only grouping by shark species
+  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>% 
+      filter(Shark.common.name == "White Shark"| 
+               Shark.common.name == "Tiger Shark" | 
+               Shark.common.name == "Wobbegong" | 
+               Shark.common.name == "Bull Shark")
+  
+shark_final_highlight <- shark_final %>% 
+  filter(Shark.common.name == str_to_title(input$shark_species_EL))
+    
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
+  geom_point() +
+  geom_point(data = shark_final_highlight, size = 5) +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
+  labs(x = "Number of Attacks per Species",
+       y = "Shark Common Names",
+       color = "Percent fatality",
+       title = "Which Shark Species Attack is Most Common and Fatal?") +
   interactive_theme
+
+ggplotly(bubble, tooltip="text") #plotly graph
     
   } else { # and they either provoke or unprovoke
-
-shark_year <- shark %>% 
-  group_by(Incident.year, Shark.common.name, Provoked.unprovoked) %>% 
-  filter( Shark.common.name != "") %>% 
-  summarize(attack_count = n()) %>% 
-  filter(Shark.common.name == input$shark_species_EL, Provoked.unprovoked == input$provoke_EL)
-
-ggplot(shark_year, aes(x = Incident.year, attack_count)) +
-  geom_line( color = "steelblue") + 
-  geom_point( color = "steelblue", size = 1) +
-  geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) + 
-  labs(title = paste("How has the", input$provoke_EL, input$shark_species_EL, "attacks changed with time?"),
-       x = "Time (years)",
-       y = "Number of attacks") +
-  theme(legend.position="none") +
+    shark_final <- shark_bubble %>%
+  group_by(Shark.common.name, Provoked.unprovoked) %>%
+  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
+        filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
+  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>% 
+      filter(Shark.common.name == "White Shark"| 
+               Shark.common.name == "Tiger Shark" | 
+               Shark.common.name == "Wobbegong" | 
+               Shark.common.name == "Bull Shark")
+    
+shark_final_highlight <- shark_final %>% 
+  filter(Shark.common.name == str_to_title(input$shark_species_EL))
+    
+bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
+  geom_point() +
+  geom_point(data = shark_final_highlight, size = 5) +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
+  labs(x = "Number of Attacks per Species",
+       y = "Shark Common Names",
+       color = "Percent fatality",
+       title = "Which Shark Species Attack is Most Common and Fatal?") +
   interactive_theme
+
+ggplotly(bubble, tooltip="text") #plotly graph
     
   } 
 }
@@ -473,6 +489,8 @@ renderPlot({ #going into the if statements
     
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
   geom_boxplot( ) +
+  scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
+  scale_color_manual(values = c("#8c3a40","#343d6b")) +
   geom_rug( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
@@ -675,7 +693,8 @@ body_bar <- ggplot(final_body_bar, aes(x = age_range, y = Number_injury, fill = 
   labs(x = "Age Range",
        y = "Number of Injuries for this Body Part",
        title = "Which Body Part was Most Injured by Age Ranges?",
-       fill = "Body Part Injured")
+       fill = "Body Part Injured") +
+  scale_fill_manual(values = c("#44AA99", "#CC6677", "#493C86", "#DDCC77"))
 
 if (input$bar_EL == "all") { #if it's all barchart
     
