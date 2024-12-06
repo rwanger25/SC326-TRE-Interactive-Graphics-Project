@@ -59,7 +59,7 @@ View(shark_attacks)
 
 # cleaning the data
 
-#adding in means
+#adding in means, renaming and recategorizing, 
 shark_attacks <- shark_attacks %>%
   filter(is.na(UIN) != T) %>% #removing the empty rows
   mutate(Victim.injury = case_when(Victim.injury == "fatal" ~ "Fatal",
@@ -81,14 +81,22 @@ shark_attacks <- shark_attacks %>%
   filter(Incident.year != "1791") %>%
   mutate(Victim.activity = case_when(Victim.activity == "boarding" ~ "Boarding",
                                    Victim.activity == "diving" ~ "Diving",
+                                   Victim.activity == "diving, collecting" ~ "Diving",
                                    Victim.activity == "fishing" ~ "Fishing",
                                    Victim.activity == "motorised boating" ~ "Motorised Boating",
                                    Victim.activity == "other: standing in water" ~ "Standing in Water",
-                                   Victim.activity == "other:floating" ~ "Floating",
+                                   Victim.activity == "other: hull scraping" ~ "Other",
+                                   Victim.activity == "other: jetskiing; swimming" ~ "Other",
+                                   Victim.activity == "other:floating" ~ "Swimming",
+                                   Victim.activity == "wing foiler" ~ "Other",
                                    Victim.activity == "snorkeling" ~ "Snorkeling", 
+                                   Victim.activity == "surfing" ~ "Boarding",
+                                   Victim.activity == "snorkelling" ~ "Snorkeling",
                                    Victim.activity == "spearfishing" ~ "Spearfishing",
+                                   Victim.activity == "paddleboarding" ~ "Boarding",
                                    Victim.activity == "swimming" ~ "Swimming",
-                                   Victim.activity == "unmotorised boating" ~ "Unmotorised Boating")) %>%
+                                   Victim.activity == "unmotorised boating" ~ "Boating",
+                                   Victim.activity == "" ~ NA)) %>%
   filter(Incident.year != "1791") %>%
   group_by(Incident.year) %>%
    #creating mean columns
@@ -248,10 +256,7 @@ aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
 aus_shp <- aus_shp %>%
   filter(STE_NAME21 != "Other Territories")
 
-# #plotting the australia map
-# ggplot()+
-#   geom_sf(data = shark_attacks_sf, color = "red") + 
-#   geom_sf(data = aus_shp)
+
 
 
 ```
@@ -295,10 +300,19 @@ lineplot <- c("Victim.age", "Shark.length.m", "No.sharks")
 barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.activity", "Injury.severity", "Victim.gender")
 
 
+# try changing the categories to x axis and time to color
+#jerzy prefer's the line and point graphs
+
 renderPlotly({
   if(input$response_var %in% barchart){
-    barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
-         geom_bar(aes(x = Year), stat = "identity", position = "dodge") + 
+    # barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
+    #   geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
+    #   geom_point(aes(x = Year))+
+    #   
+      barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = "Year")) +
+      geom_line(aes_string(x = input$response_var, group = "Year", color = "Year"))+
+      geom_point(aes_string(x = input$response_var, group = "Year", color = "Year"))+
+        # geom_bar(aes(x = Year), stat = "identity", position = position_dodge(preserve = "single")) + 
          labs(x = "Year",
               y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
               title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Types from Shark Attacks over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders over Time", "")))))),
@@ -310,7 +324,8 @@ renderPlotly({
                     aes_string(x = "Year", 
                                ymin = paste0("lower_", input$response_var), 
                                ymax = paste0("upper_", input$response_var)), 
-                    color = "red", position = position_dodge(width = 0.9))
+                    color = "red", position = position_dodge(preserve = "single"))
+    
     } 
   if (input$error_bar & input$prop_count == "prop") {
     print("You cannot print errorbars for count data!")
@@ -321,12 +336,12 @@ renderPlotly({
   } else if (input$response_var %in% lineplot) {
     lineplot_plot <- ggplot(data = shark_attacks_timeline,
                             aes_string(x = "Incident.month_year", y = input$response_var)) +
-        geom_line()+
+        #geom_line()+
         geom_point() +
         geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
         labs(x = "Date", y = "Victim Age") +
         scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) +
-        stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+        #stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
         theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
     
     return(ggplotly(lineplot_plot))
@@ -350,8 +365,8 @@ Column {.sidebar}
 
 #widgets for the barcharts
 
-radioButtons("response_var", label = h3("Response Variable:"), 
-    choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+radioButtons("response_var", label = h3("Attack Characteristic:"), 
+    choices = list("Victim Age" = "Victim.age", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
 radioButtons("prop_count", label = h3("Proportions or Count:"), 
                    choices = list("Proportion" = "prop", "Count" = "count"))
@@ -396,13 +411,13 @@ renderPlotly({
     geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
     labs(x = "", y = "", fill = "State") +
     geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
-    geom_sf(data = shark_attacks_sf, aes_string(fill = input$response_var_map),
-            aes(text = paste0("Date: ", Incident.year,
+    geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", Incident.year,
                       "<br>Location: ", Location,
-                      "<br>Victim Activity: ", Victim.activity,
+                      "<br>Victim Activity:" , Victim.activity,
                       "<br>Injury: ", Victim.injury,
                       "<br>Site Category: ", Site.category)), 
           size = 1.5)
+  map <- map + 
   
   return(ggplotly(map))
 

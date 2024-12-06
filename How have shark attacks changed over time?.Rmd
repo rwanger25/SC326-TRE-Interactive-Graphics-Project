@@ -453,3 +453,94 @@ ggplot(data = shark_attacks_proportions_Injury.severity, aes(x = Year, y = propo
 
 
 ```
+
+How Have Shark Attacks Changed over Time?
+=====================================  
+
+
+### Shark Attacks over Time
+
+
+
+```{r}
+
+
+dataframe <- reactive({switch(input$response_var,
+                    "Victim.injury" = shark_attacks_proportions_Victim.injury,
+                    "Site.category" = shark_attacks_proportions_Site.category,
+                    "Provoked.unprovoked" = shark_attacks_proportions_Provoked.unprovoked,
+                    "Victim.activity" = shark_attacks_proportions_Victim.activity,
+                    "Injury.severity" = shark_attacks_proportions_Injury.severity,
+                     "Victim.gender" = shark_attacks_proportions_Victim.gender)
+})
+
+lineplot <- c("Victim.age", "Shark.length.m", "No.sharks")
+barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.activity", "Injury.severity", "Victim.gender")
+
+
+renderPlotly({
+  if(input$response_var %in% barchart){
+    barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
+         geom_bar(aes(x = Year), stat = "identity", position = "dodge") + 
+         labs(x = "Year",
+              y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
+              title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Types from Shark Attacks over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders over Time", "")))))),
+              fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))))
+     # Add error bars if selected
+  if (input$error_bar & input$prop_count == "prop") {
+    barchart_plot <- barchart_plot +
+      geom_errorbar(data = dataframe(), 
+                    aes_string(x = "Year", 
+                               ymin = paste0("lower_", input$response_var), 
+                               ymax = paste0("upper_", input$response_var)), 
+                    color = "red", position = position_dodge(width = 0.9))
+    } 
+  if (input$error_bar & input$prop_count == "prop") {
+    print("You cannot print errorbars for count data!")
+  }
+    
+    return(ggplotly(barchart_plot)) 
+    
+  } else if (input$response_var %in% lineplot) {
+    lineplot_plot <- ggplot(data = shark_attacks_timeline,
+                            aes_string(x = "Incident.month_year", y = input$response_var)) +
+        geom_line()+
+        geom_point() +
+        geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
+        labs(x = "Date", y = "Victim Age") +
+        scale_x_date(date_breaks = "10 years", date_labels = "%m/%Y", limits = start.end) +
+        stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.8))
+    
+    return(ggplotly(lineplot_plot))
+   
+  }
+  
+})
+
+
+```
+
+
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+
+
+```{r}
+
+
+#widgets for the barcharts
+
+radioButtons("response_var", label = h3("Response Variable:"), 
+    choices = list("Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+
+radioButtons("prop_count", label = h3("Proportions or Count:"), 
+                   choices = list("Proportion" = "prop", "Count" = "count"))
+
+checkboxInput("error_bar", label = h4("Include Error Bar"))
+
+```
+
+
