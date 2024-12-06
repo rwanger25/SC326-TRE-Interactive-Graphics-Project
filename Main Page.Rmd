@@ -583,6 +583,8 @@ renderPlot({ #going into the if statements
 
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
   geom_boxplot( ) +
+      scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
+  scale_color_manual(values = c("#8c3a40","#343d6b")) +
   geom_rug( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
@@ -601,6 +603,8 @@ renderPlot({ #going into the if statements
     
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
   geom_boxplot( ) +
+      scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
+  scale_color_manual(values = c("#8c3a40","#343d6b")) +
   geom_rug( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
@@ -619,6 +623,8 @@ fatal_shark <- shark %>%
     
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
   geom_boxplot( ) +
+      scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
+  scale_color_manual(values = c("#8c3a40","#343d6b")) +
   geom_rug( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
