@@ -1,5 +1,14 @@
 ---
-output: flexdashboard::flex_dashboard
+title: "tim-interactive"
+output:
+  flexdashboard::flex_dashboard:
+    theme: 
+      version: 4
+      bg: "#101010"
+      fg: "#8db8fc" 
+      primary: "#8db8fc"
+      base_font: 
+        DIN Alternate
 runtime: shiny
 ---
 
@@ -112,8 +121,8 @@ renderPlotly({
   sharks_act_filtered <- sharks_act_filtered_v1 %>% filter(Victim.age %in% (as.numeric(input$age_slider[1]):as.numeric(input$age_slider[2])))
   
   p_act <- ggplot(sharks_act_filtered, aes(x = fct_infreq(Victim.activity), fill = Victim.activity)) + geom_bar() + scale_fill_manual(values = c("Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6")) + labs(x = "Activity", y = "Number of Shark Attacks") + theme(
-    axis.title = element_text(family = "Arial", color = "#0a144a", face = "bold", size = 16),
-    axis.text = element_text(family = "Arial", color = "#0a144a", size = 12),
+    axis.title = element_text(family = "DIN Alternate", color = "#0a144a", face = "bold", size = 16),
+    axis.text = element_text(family = "DIN Alternate", color = "#0a144a", size = 12),
     panel.background = element_rect(fill = "#d1d4e3"),
     plot.background = element_rect(fill = "#d1d4e3"),
     legend.position = "none")
@@ -172,8 +181,8 @@ renderPlotly({
   if(input$time_button == "month")
     {
     p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point(color = "#0a144a") + geom_line(group = 1, color = "#0a144a") + labs(x = "Month", y = "Number of Shark Attacks") + theme(
-      axis.title = element_text(family = "Arial", color = "#0a144a", face = "bold", size = 16),
-      axis.text = element_text(family = "Arial", color = "#0a144a", size = 12),
+      axis.title = element_text(family = "DIN Alternate", color = "#0a144a", face = "bold", size = 16),
+      axis.text = element_text(family = "DIN Alternate", color = "#0a144a", size = 12),
       panel.background = element_rect(fill = "#d1d4e3"),
       plot.background = element_rect(fill = "#d1d4e3"),
       legend.position = "none")
@@ -187,8 +196,8 @@ renderPlotly({
       format(strptime(time, "%H:%M"), "%I:%M %p")
       }
       ) + labs(x = "Time of Day", y = "Number of Shark Attacks") + theme(
-        axis.title = element_text(family = "Arial", color = "#0a144a", face = "bold", size = 16),
-        axis.text = element_text(family = "Arial", color = "#0a144a", size = 12),
+        axis.title = element_text(family = "DIN Alternate", color = "#0a144a", face = "bold", size = 16),
+        axis.text = element_text(family = "DIN Alternate", color = "#0a144a", size = 12),
         panel.background = element_rect(fill = "#d1d4e3"),
         plot.background = element_rect(fill = "#d1d4e3"),
         legend.position = "none")
