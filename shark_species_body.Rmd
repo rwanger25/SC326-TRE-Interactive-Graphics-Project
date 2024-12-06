@@ -22,6 +22,17 @@ library(knitr)
 
 shark <- read.csv("Shark Dataset.csv")
 
+interactive_theme <- theme_gray() +# White background, black and white theme
+  theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
+        axis.title = element_text(family = "Arial", color = "#0a144a"),
+        axis.text = element_text(color = "#0a144a"),
+        legend.title = element_text(family = "Arial", face = "bold",  color = "#0a144a"),
+        legend.text = element_text(family = "Arial", color = "#0a144a"),
+        legend.box.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "#d1d4e3"),
+        panel.background = element_rect(fill = "#d1d4e3"),
+        plot.background = element_rect(fill = "#d1d4e3"))
+
 # only do top 5 sharks? have a tab for top 5 sharks? keep the graph and change the numbers? 
 #highlights the shark when you tab into it?
 # shark length 
@@ -274,7 +285,8 @@ bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.nam
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?")
+       title = "Which Shark Species Attack is Most Common and Fatal?") +
+  interactive_theme
 
 ggplotly(bubble, tooltip="text") #plotly graph
 
@@ -292,7 +304,8 @@ bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.nam
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
-       title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL))
+       title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL)) +
+  interactive_theme
 
 ggplotly(bubble, tooltip="text") #plotly graph
 
@@ -315,7 +328,8 @@ bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.nam
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?")
+       title = "Which Shark Species Attack is Most Common and Fatal?") +
+  interactive_theme
 
 ggplotly(bubble, tooltip="text") #plotly graph
     
@@ -336,7 +350,8 @@ bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.nam
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?")
+       title = "Which Shark Species Attack is Most Common and Fatal?") +
+  interactive_theme
 
 ggplotly(bubble, tooltip="text") #plotly graph
     
@@ -372,7 +387,8 @@ bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.nam
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?")
+       title = "Which Shark Species Attack is Most Common and Fatal?") +
+  interactive_theme
 
 ggplotly(bubble, tooltip="text") #plotly graph
 
@@ -395,7 +411,8 @@ bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.nam
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
-       title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL))
+       title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL)) +
+  interactive_theme
 
 ggplotly(bubble, tooltip="text") #plotly graph
 
@@ -416,7 +433,8 @@ ggplot(shark_year, aes(x = Incident.year, attack_count)) +
   labs(title = paste("How has the ", input$shark_species_EL, " attacks changed with time?"),
        x = "Time (years)",
        y = "Number of attacks") +
-  theme(legend.position="none")
+  theme(legend.position="none") +
+  interactive_theme
     
   } else { # and they either provoke or unprovoke
 
@@ -433,7 +451,8 @@ ggplot(shark_year, aes(x = Incident.year, attack_count)) +
   labs(title = paste("How has the", input$provoke_EL, input$shark_species_EL, "attacks changed with time?"),
        x = "Time (years)",
        y = "Number of attacks") +
-  theme(legend.position="none")
+  theme(legend.position="none") +
+  interactive_theme
     
   } 
 }
@@ -458,7 +477,8 @@ renderPlot({ #going into the if statements
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
        y = "Shark Length (m)",
-       title = "Are Longer Sharks More Fatal?")
+       title = "Are Longer Sharks More Fatal?") +
+    interactive_theme
     
   } else { # and they either provoke or unprovoke
     
@@ -472,7 +492,8 @@ renderPlot({ #going into the if statements
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
        y = "Shark Length (m)",
-       title = "Are Longer Sharks More Fatal?")
+       title = "Are Longer Sharks More Fatal?") +
+    interactive_theme
   } 
 } else { # if the shark species is not all
   if(input$provoke_EL == "both") { # and they both provoke and unprovoke
@@ -489,7 +510,8 @@ renderPlot({ #going into the if statements
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
        y = "Shark Length (m)",
-       title = "Are Longer Sharks More Fatal?")
+       title = "Are Longer Sharks More Fatal?") +
+    interactive_theme
   
   } else { # and they either provoke or unprovoke
     
@@ -506,7 +528,8 @@ fatal_shark <- shark %>%
   theme(legend.position = "none") +
   labs(x = "Fatal or Non-Fatal Attack",
        y = "Shark Length (m)",
-       title = "Are Longer Sharks More Fatal?")
+       title = "Are Longer Sharks More Fatal?") +
+    interactive_theme
   } 
 }
 
@@ -667,7 +690,8 @@ if (input$bar_EL == "all") { #if it's all barchart
                               (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
 
 body_bar + geom_col(data = specific_age, color = "red", size = 1.5) + 
-  guides(color = "none")
+  guides(color = "none") +
+  interactive_theme
   
 } else { #if it's a specific age barchart
 
@@ -694,7 +718,8 @@ body_bar <- ggplot(body_total_age, aes(x = reorder(body, Number_injury), y = Num
                                (50 < input$age_EL) & (input$age_EL <= 60)  ~ "51-60",
                                (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
                                (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75")),
-       fill = "Body Part Injured")
+       fill = "Body Part Injured") +
+  interactive_theme
 
 body_bar
 }
@@ -803,7 +828,8 @@ ggplot(data = body_combine, aes(x,y, group = Id)) +
   scale_fill_gradient( low = "blue", high = "red" ) +
   labs(title = paste("Which body part was most injured at age", input$age_EL, "?"),
        caption = "BdygramR: original_male diagram",
-       fill = "Number of Injuries")
+       fill = "Number of Injuries") +
+  interactive_theme
 
 })
 ```
