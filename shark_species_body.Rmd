@@ -194,7 +194,7 @@ renderValueBox({
   attacks <- as.character(fatal_percent_value$total_attacks) #assign value
   valueBox(attacks, # render the valuebox
            icon = "ion-alert-circled",
-           color = "navy")
+           color = "#0a144a")
 })
 ```
 
@@ -242,7 +242,7 @@ renderValueBox({
   deaths <- fatal_percent_value$total_attacks #assign value
   valueBox(deaths, # render the valuebox
            icon = "ion-alert-circled",
-           color = "maroon")
+           color = "#67000d")
 })
 ```
 
@@ -281,7 +281,7 @@ renderPlotly({ #going into the if statements
     
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
   geom_point(size = 3) +
-  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
@@ -300,7 +300,7 @@ ggplotly(bubble, tooltip="text") #plotly graph
     
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
   geom_point(size = 3) +
-  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
@@ -324,7 +324,7 @@ shark_final_highlight <- shark_final %>%
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
   geom_point() +
   geom_point(data = shark_final_highlight, size = 5) +
-  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
@@ -346,7 +346,7 @@ shark_final_highlight <- shark_final %>%
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
   geom_point() +
   geom_point(data = shark_final_highlight, size = 5) +
-  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
@@ -383,7 +383,7 @@ renderPlotly({ #going into the if statements
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
   geom_point() +
   scale_size(range = c(1, 4), name="Number of Attacks)") +
-  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
@@ -407,7 +407,7 @@ ggplotly(bubble, tooltip="text") #plotly graph
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
   geom_point() +
   scale_size(range = c(1, 10), name="Number of Attacks)") +
-  scale_colour_gradient(low = "steelblue", high = "red") +
+  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
   labs(x = "Number of Attacks per Species",
        y = "Shark Common Names",
        color = "Percent fatality",
@@ -689,7 +689,7 @@ if (input$bar_EL == "all") { #if it's all barchart
                               (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
                               (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
 
-body_bar + geom_col(data = specific_age, color = "red", size = 1.5) + 
+body_bar + geom_col(data = specific_age, color = "#a50f15", size = 1.5) + 
   guides(color = "none") +
   interactive_theme
   
@@ -707,7 +707,7 @@ body_total_age <- body_total %>%
                                (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
 
 body_bar <- ggplot(body_total_age, aes(x = reorder(body, Number_injury), y = Number_injury)) +
-  geom_col(fill = "steelblue") +
+  geom_col(fill = "#a50f15") +
   labs(x = "Body Part Injured",
        y = "Number of Injuries for this Body Part",
        title = paste("Which Body Part was Most Injured in Ages", case_when(input$age_EL <= 10 ~ "0-10", 
@@ -824,8 +824,8 @@ body_combine <- full_join(body_polygon, body_total, by = "body", relationship = 
 
 
 ggplot(data = body_combine, aes(x,y, group = Id)) +
-  geom_bdgramr(color = "cyan", aes(fill = Number_injury)) +
-  scale_fill_gradient( low = "blue", high = "red" ) +
+  geom_bdgramr(color = "#67000d", aes(fill = Number_injury)) +
+  scale_fill_gradient(low = "#fff5f0", high = "#a50f15" ) +
   labs(title = paste("Which body part was most injured at age", input$age_EL, "?"),
        caption = "BdygramR: original_male diagram",
        fill = "Number of Injuries") +
