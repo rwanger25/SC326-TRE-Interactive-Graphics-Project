@@ -23,9 +23,20 @@ library(shiny)
 library(tidyr)
 library(plotly)
 library(forcats)
+
+interactive_theme <- theme_gray() +# White background, black and white theme
+  theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
+        axis.title = element_text(family = "DIN Alternate", color = "#0a144a"),
+        axis.text = element_text(color = "#0a144a"),
+        legend.title = element_text(family = "DIN Alternate", face = "bold",  color = "#0a144a"),
+        legend.text = element_text(family = "DIN Alternate", color = "#0a144a"),
+        legend.box.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "#d1d4e3"),
+        panel.background = element_rect(fill = "#d1d4e3"),
+        plot.background = element_rect(fill = "#d1d4e3"))
 ```
 
-Welcome
+Introduction
 =====================================
 ```{r}
 fluidPage(
@@ -120,12 +131,7 @@ renderPlotly({
   
   sharks_act_filtered <- sharks_act_filtered_v1 %>% filter(Victim.age %in% (as.numeric(input$age_slider[1]):as.numeric(input$age_slider[2])))
   
-  p_act <- ggplot(sharks_act_filtered, aes(x = fct_infreq(Victim.activity), fill = Victim.activity)) + geom_bar() + scale_fill_manual(values = c("Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6")) + labs(x = "Activity", y = "Number of Shark Attacks") + theme(
-    axis.title = element_text(family = "DIN Alternate", color = "#0a144a", face = "bold", size = 16),
-    axis.text = element_text(family = "DIN Alternate", color = "#0a144a", size = 12),
-    panel.background = element_rect(fill = "#d1d4e3"),
-    plot.background = element_rect(fill = "#d1d4e3"),
-    legend.position = "none")
+  p_act <- ggplot(sharks_act_filtered, aes(x = fct_infreq(Victim.activity), fill = Victim.activity)) + geom_bar() + scale_fill_manual(values = c("Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6")) + labs(x = "Activity", y = "Number of Shark Attacks") + interactive_theme
   
   ggplotly(p_act)})
 ```
@@ -180,12 +186,7 @@ sharks_time_hour <- sharks_time_hour %>%
 renderPlotly({
   if(input$time_button == "month")
     {
-    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point(color = "#0a144a") + geom_line(group = 1, color = "#0a144a") + labs(x = "Month", y = "Number of Shark Attacks") + theme(
-      axis.title = element_text(family = "DIN Alternate", color = "#0a144a", face = "bold", size = 16),
-      axis.text = element_text(family = "DIN Alternate", color = "#0a144a", size = 12),
-      panel.background = element_rect(fill = "#d1d4e3"),
-      plot.background = element_rect(fill = "#d1d4e3"),
-      legend.position = "none")
+    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point(color = "#0a144a") + geom_line(group = 1, color = "#0a144a") + labs(x = "Month", y = "Number of Shark Attacks") + interactive_theme
     }
   else
     {
@@ -195,12 +196,7 @@ renderPlotly({
       time <- sprintf("%02d:%02d", hour, minute)
       format(strptime(time, "%H:%M"), "%I:%M %p")
       }
-      ) + labs(x = "Time of Day", y = "Number of Shark Attacks") + theme(
-        axis.title = element_text(family = "DIN Alternate", color = "#0a144a", face = "bold", size = 16),
-        axis.text = element_text(family = "DIN Alternate", color = "#0a144a", size = 12),
-        panel.background = element_rect(fill = "#d1d4e3"),
-        plot.background = element_rect(fill = "#d1d4e3"),
-        legend.position = "none")
+      ) + labs(x = "Time of Day", y = "Number of Shark Attacks") + interactive_theme
     }
   ggplotly(p_time)
   })
