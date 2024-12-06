@@ -120,7 +120,7 @@ Column {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
-selectInput("shark_species_EL", label = "What shark do you see?", 
+selectInput("shark_species_EL", label = "Attacks based on shark species", 
             choices =  c("All" = "all",
                          "White shark" = "white shark",
                          "Tiger shark" = "tiger shark",
@@ -145,10 +145,10 @@ selectInput("shark_species_EL", label = "What shark do you see?",
                          "Port jackson shark" = "port jackson shark",
                          "Lemon shark" = "lemon shark"))
 
-selectInput("provoke_EL", label = "Do you provoke the shark?", 
-            choices = c("Yes and No" = "both",
-                        "Yes" = "provoked",
-                        "No" = "unprovoked"))
+selectInput("provoke_EL", label = "Attacks if provoked or unprovoked", 
+            choices = c("Provoked and Unprovoked" = "both",
+                        "Provoked" = "provoked",
+                        "Unprovoked" = "unprovoked"))
 ```
 
 Data source: Australian Shark-Incident Database
