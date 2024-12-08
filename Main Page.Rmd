@@ -64,7 +64,7 @@ interactive_theme <- theme_gray() +# White background, black and white theme
         plot.background = element_rect(fill = "#d1d4e3"))
 ```
 
-Introduction
+Introduction 
 =====================================
 ```{r}
 fluidPage(
@@ -101,7 +101,7 @@ fluidPage(
 
 ```
 
-How fatal is this shark?
+How fatal is this shark? {data-navmenu="Menu"}
 =====================================  
 
 ```{r global_species, include=FALSE, warning=FALSE, message=FALSE}
@@ -639,7 +639,7 @@ fatal_shark <- shark %>%
 })
 ```
 
-Which body part are you most likely to injure?
+Which body part are you most likely to injure? {data-navmenu="Menu"}
 =====================================  
 
 ```{r global_body, include=FALSE, warning=FALSE, message=FALSE}
@@ -935,7 +935,7 @@ ggplot(data = body_combine, aes(x,y, group = Id)) +
 })
 ```
 
-What Activities Put You at the Highest Risk of Shark Attacks?
+What Activities Put You at the Highest Risk of Shark Attacks? {data-navmenu="Menu"}
 =====================================  
 
 Column {.sidebar}
@@ -999,7 +999,7 @@ renderPlotly({
   ggplotly(p_act)})
 ```
 
-When Should You Swim?
+When Should You Swim? {data-navmenu="Menu"}
 =====================================  
 
 Column {.sidebar}
@@ -1065,7 +1065,7 @@ renderPlotly({
   })
 ```
 
-How Have Shark Attacks Changed Over Time?
+How Have Shark Attacks Changed Over Time? {data-navmenu="Menu"}
 =====================================  
 
 ```{r global_time, include=FALSE, warning=FALSE, message=FALSE}
@@ -1378,7 +1378,7 @@ checkboxInput("error_bar", label = h4("Include Error Bar"))
 ```
 
 
-Where are Shark Attacks Occuring?
+Where are Shark Attacks Occuring? {data-navmenu="Menu"}
 =====================================  
 
 ```{r}
