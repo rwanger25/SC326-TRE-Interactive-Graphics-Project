@@ -37,7 +37,7 @@ library(rsconnect)
 
 ```{r global, include=FALSE, warning=FALSE, message=FALSE}
 # loading in data in 'global' chunk so it can be shared by all users of the dashboard
-shark_attacks <- read.csv("Shark Dataset.csv")
+shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
@@ -111,8 +111,12 @@ library(flexdashboard)
 library(plotly)
 library(stringr)
 library(knitr)
+library(dplyr)
 
-shark <- read.csv("Shark Dataset.csv")
+
+shark <- read.csv("Australian Shark-Incident Database Public Version.csv")
+blurb <- read.csv("shark blurb.csv")
+
 
 ```
 
@@ -124,26 +128,26 @@ selectInput("shark_species_EL", label = "Attacks based on shark species",
             choices =  c("All" = "all",
                          "White shark" = "white shark",
                          "Tiger shark" = "tiger shark",
+                         "Wobbegong" = "wobbegong",
                          "Bull shark" = "bull shark",
                          "Whaler shark" = "whaler shark",
-                         "Wobbegong" = "wobbegong",
-                         "Broadnose sevengill shark" = "broadnose sevengill shark",
-                         "Dusky shark" = "dusky shark",
                          "Bronze whaler shark" = "bronze whaler shark",
-                         "Dogfish" = "dogfish",
-                         "Shortfin mako shark" = "shortfin mako shark",
-                         "School shark" = "school shark",
+                         "Grey nurse shark" = "grey nurse shark",
                          "Grey reef shark" = "grey reef shark",
                          "Whitetip reef shark" = "whitetip reef shark",
+                         "Lemon shark" = "lemon shark",
                          "Hammerhead shark" = "hammerhead shark ",
-                         "Grey nurse shark" = "grey nurse shark",
-                         "Sevengill shark" = "sevengill shark",
-                         "Galapagos shark" = "galapagos shark",
-                         "Silvertip shark" = "silvertip shark",
-                         "Blind shark" = "blind shark",
+                         "Dusky shark" = "dusky shark",
                          "Blacktip reef shark" = "blacktip reef shark",
+                         "Galapagos shark" = "galapagos shark",
+                         "Shortfin mako shark" = "shortfin mako shark",
+                         "Broadnose sevengill shark" = "broadnose sevengill shark",
+                         "Silvertip shark" = "silvertip shark",
+                         "Sevengill shark" = "sevengill shark",
+                         "School shark" = "school shark",
                          "Port jackson shark" = "port jackson shark",
-                         "Lemon shark" = "lemon shark"))
+                         "Dogfish" = "dogfish",
+                         "Blind shark" = "blind shark"))
 
 selectInput("provoke_EL", label = "Attacks if provoked or unprovoked", 
             choices = c("Provoked and Unprovoked" = "both",
@@ -151,9 +155,13 @@ selectInput("provoke_EL", label = "Attacks if provoked or unprovoked",
                         "Unprovoked" = "unprovoked"))
 ```
 
-Data source: Australian Shark-Incident Database
-
 ```{r}
+ renderTable({
+    blurb %>%
+    filter(name == input$shark_species_EL) %>% 
+    select(Takeaways)
+
+})
 
 renderImage({
     if(input$shark_species_EL == "all"){
@@ -161,24 +169,23 @@ renderImage({
           src = file.path(paste("shark.jpg")),
           contentType = "image/jpeg",
           width = 230,
-          alt = "Picture of a shark"
+          alt = "Illustration of a shark"
         )
     } else {
         list(
           src = file.path(paste(input$shark_species_EL, ".jpg")),
           contentType = "image/jpeg",
           width = 230,
-          alt = "Picture of a shark"
+          alt = paste("Picture of a", input$shark_species_EL)
         )
     }
   }, deleteFile = FALSE)
-
 
 ```
 
 Row
 -----------------------------------------------------------------------
-### Percent Fatal
+### Percent Fatality
 
 ```{r}
 fatal_percent <- shark %>% 
@@ -269,7 +276,11 @@ renderValueBox({
       summarize(total_attacks = mean(total_attacks))
   } 
 }
-  attacks <- as.character(fatal_percent_value$total_attacks) #assign value
+    if(is.nan(fatal_percent_value$total_attacks)){
+    attacks <- 0
+  } else {
+    attacks <- fatal_percent_value$total_attacks #assign value
+  }
   valueBox(attacks, # render the valuebox
            icon = "ion-alert-circled",
            color = "#0a144a")
@@ -317,7 +328,11 @@ renderValueBox({
       summarize(total_attacks = mean(total_attacks))
   } 
 }
-  deaths <- fatal_percent_value$total_attacks #assign value
+  if(is.nan(fatal_percent_value$total_attacks)){
+    deaths <- 0
+  } else {
+    deaths <- fatal_percent_value$total_attacks #assign value
+  }
   valueBox(deaths, # render the valuebox
            icon = "ion-alert-circled",
            color = "#67000d")
@@ -354,7 +369,7 @@ renderPlotly({ #going into the if statements
     
     shark_final <- shark_bubble %>% 
   group_by(Shark.common.name) %>% #only grouping by shark species
-  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
+  summarize(attack_species = max(attack_species), percent = max(all_percent) * 100) %>% 
   mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
     
 bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
@@ -372,7 +387,7 @@ ggplotly(bubble, tooltip="text") #plotly graph
     
     shark_final <- shark_bubble %>%
   group_by(Shark.common.name, Provoked.unprovoked) %>%
-  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
+  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent) * 100) %>% 
         filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
   mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
     
@@ -393,7 +408,7 @@ ggplotly(bubble, tooltip="text") #plotly graph
 
     shark_final <- shark_bubble %>% 
   group_by(Shark.common.name) %>% #only grouping by shark species
-  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
+  summarize(attack_species = max(attack_species), percent = max(all_percent) * 100) %>% 
   mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
   
 shark_final_highlight <- shark_final %>% 
@@ -414,7 +429,7 @@ ggplotly(bubble, tooltip="text") #plotly graph
   } else { # and they either provoke or unprovoke
     shark_final <- shark_bubble %>%
   group_by(Shark.common.name, Provoked.unprovoked) %>%
-  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
+  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent) * 100) %>% 
         filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
   mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%"))
     
@@ -440,120 +455,6 @@ ggplotly(bubble, tooltip="text") #plotly graph
 })
 ```
 
-### Top 4 species
-
-```{r}
-
-renderPlotly({ #going into the if statements
-
-  if (input$shark_species_EL == "all") { #if the shark species is all
-  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
-    
-    shark_final <- shark_bubble %>% 
-  group_by(Shark.common.name) %>% #only grouping by shark species
-  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
-  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>% 
-        filter(Shark.common.name == "White Shark"| 
-                 Shark.common.name == "Tiger Shark" | 
-                 Shark.common.name == "Wobbegong" | 
-                 Shark.common.name == "Bull Shark")
-    
-bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
-  geom_point() +
-  scale_size(range = c(1, 4), name="Number of Attacks)") +
-  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
-  labs(x = "Number of Attacks per Species",
-       y = "Shark Common Names",
-       color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?") +
-  interactive_theme
-
-ggplotly(bubble, tooltip="text") #plotly graph
-
-  } else { # and they either provoke or unprovoke
-    
-    shark_final <- shark_bubble %>%
-  group_by(Shark.common.name, Provoked.unprovoked) %>%
-  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
-        filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
-  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>%
-      filter(Shark.common.name == "White Shark"| 
-               Shark.common.name == "Tiger Shark" | 
-               Shark.common.name == "Wobbegong" | 
-               Shark.common.name == "Bull Shark")
-    
-bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), size = attack_species, color = percent, text = text)) +
-  geom_point() +
-  scale_size(range = c(1, 10), name="Number of Attacks)") +
-  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
-  labs(x = "Number of Attacks per Species",
-       y = "Shark Common Names",
-       color = "Percent fatality",
-       title = paste("Which Shark Species Attack is Most Common and Fatal?-", input$provoke_EL)) +
-  interactive_theme
-
-ggplotly(bubble, tooltip="text") #plotly graph
-
-  } 
-} else { # if the shark species is not all
-  if(input$provoke_EL == "both") { # and they both provoke and unprovoke
-
-    shark_final <- shark_bubble %>% 
-  group_by(Shark.common.name) %>% #only grouping by shark species
-  summarize(attack_species = max(attack_species), percent = max(all_percent)) %>% 
-  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>% 
-      filter(Shark.common.name == "White Shark"| 
-               Shark.common.name == "Tiger Shark" | 
-               Shark.common.name == "Wobbegong" | 
-               Shark.common.name == "Bull Shark")
-  
-shark_final_highlight <- shark_final %>% 
-  filter(Shark.common.name == str_to_title(input$shark_species_EL))
-    
-bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
-  geom_point() +
-  geom_point(data = shark_final_highlight, size = 5) +
-  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
-  labs(x = "Number of Attacks per Species",
-       y = "Shark Common Names",
-       color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?") +
-  interactive_theme
-
-ggplotly(bubble, tooltip="text") #plotly graph
-    
-  } else { # and they either provoke or unprovoke
-    shark_final <- shark_bubble %>%
-  group_by(Shark.common.name, Provoked.unprovoked) %>%
-  summarize(attack_species = max(attack_species_provoke), percent = max(provoke_percent)) %>% 
-        filter(Provoked.unprovoked == input$provoke_EL) %>% # only taking the provoked or unprovoked options
-  mutate(text = paste("Shark Name: ", Shark.common.name, "\nNumber of Attacks: ", attack_species, "\nFatal attacks: ", round(percent, digits = 1), "%")) %>% 
-      filter(Shark.common.name == "White Shark"| 
-               Shark.common.name == "Tiger Shark" | 
-               Shark.common.name == "Wobbegong" | 
-               Shark.common.name == "Bull Shark")
-    
-shark_final_highlight <- shark_final %>% 
-  filter(Shark.common.name == str_to_title(input$shark_species_EL))
-    
-bubble <- ggplot(shark_final, aes(x= attack_species, y= reorder(Shark.common.name, attack_species), color = percent, text = text)) +
-  geom_point() +
-  geom_point(data = shark_final_highlight, size = 5) +
-  scale_colour_gradient(low = "#fcbba1", high = "#a50f15") +
-  labs(x = "Number of Attacks per Species",
-       y = "Shark Common Names",
-       color = "Percent fatality",
-       title = "Which Shark Species Attack is Most Common and Fatal?") +
-  interactive_theme
-
-ggplotly(bubble, tooltip="text") #plotly graph
-    
-  } 
-}
-
-
-})
-```
 
 ### Shark Length
 ```{r}
@@ -648,10 +549,9 @@ library(flexdashboard)
 library(plotly)
 library(stringr)
 library(devtools)
-install_github("josedv82/bdgramR")
 library(bdgramR)
 
-shark <- read.csv("Shark Dataset.csv")
+shark <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
 ```
 
@@ -664,8 +564,15 @@ selectInput("gender_EL", label = "Select a gender",
                          "Male" = "male",
                          "Female" = "female"))
 
-sliderInput("age_EL", label = "Select your age",
-            min = 0, max = 75, value = 30, step = 1)
+selectInput("age_EL", label = "Select an age range", 
+            choices =  c("0-10" = "0-10",
+                         "11-20" = "11-20",
+                         "21-30" = "21-30",
+                         "31-40" = "31-40",
+                         "41-50" = "41-50",
+                         "51-60" = "51-60",
+                         "61-70" = "61-70",
+                         "71-75" = "71-75"))
 
 radioButtons("bar_EL", "Bar Chart type",
                c("Bar chart of all age ranges" = "all",
@@ -674,13 +581,12 @@ radioButtons("bar_EL", "Bar Chart type",
 
 ```
 
-Data source: Australian Shark-Incident Database
 
-Row {data-height=100}
+Row {data-height=130}
 -----------------------------------------------------------------------
 
-### Looks like...
-Watch out for your legs! They seem to be the most common part of the body injured by people.
+### Helpful Advice for your trip
+During your Australia trip, we would love for you to be as safe as possible. On this page we visualized some data representing where people have been injured in the past due to shark attacks so you can watch out for said body part depending on gender and age range. In general, people between the age 10 and 40 were injured most on their legs, and people between the ages 41 to 60 were injured most on their arms. People seem to also get injured the most on their legs regardless of what gender they were. Keeps those legs close to you!
 
 Row 
 -----------------------------------------------------------------------
@@ -742,26 +648,27 @@ body_total <- body_1234 %>%
   group_by(body, age_range) %>%
   mutate(body = ifelse(body == "left leg", "leg", body),
          body = ifelse(body == "left foot", "foot", body)) %>% 
-  summarize(Number_injury = sum(sum)) %>% 
   mutate(overall = case_when(body == "ankle" ~ "foot",
-                            body == "calf" ~ "leg",
-                            body == "hand" ~ "arm",
-                            body == "leg" ~ "leg",
-                            body == "other: half of body recovered" ~ "",
-                            body == "other: uninjured" ~ "",
-                            body == "right" ~ "",
-                            body == "shoulder " ~ "shoulder",
-                            body == "torso" ~ "torso",
-                            body == "arm" ~ "arm",
-                            body == "foot" ~ "foot",
-                            body == "head" ~ "head",
-                            body == "other: body not recovered" ~ "",
-                            body == "other: multiple bites" ~ "",
-                            body == "pelvic region" ~ "pelvic region",
-                            body == "shoulder" ~ "shoulder",
-                            body == "thigh" ~ "leg"),
+                             body == "calf" ~ "leg",
+                             body == "hand" ~ "arm",
+                             body == "leg" ~ "leg",
+                             body == "other: half of body recovered" ~ "",
+                             body == "other: uninjured" ~ "",
+                             body == "right" ~ "",
+                             body == "shoulder " ~ "shoulder",
+                             body == "torso" ~ "torso",
+                             body == "arm" ~ "arm",
+                             body == "foot" ~ "foot",
+                             body == "head" ~ "head",
+                             body == "other: body not recovered" ~ "",
+                             body == "other: multiple bites" ~ "",
+                             body == "pelvic region" ~ "pelvic region",
+                             body == "shoulder" ~ "shoulder",
+                             body == "thigh" ~ "leg"),
          body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>% 
   filter(overall != "" ) %>% 
+  group_by(overall, age_range) %>% 
+  summarize(Number_injury = sum(sum)) %>% 
   na.omit()
 
 final_body_bar <- body_total %>% 
@@ -770,14 +677,13 @@ final_body_bar <- body_total %>%
 
 final_body_bar$age_range <- factor(final_body_bar$age_range, levels = c("0-10", "11-20", "21-30", "31-40", "41-50", "51-60", "61-70", "71-75"))
 
-body_bar <- ggplot(final_body_bar, aes(x = age_range, y = Number_injury, fill = body)) +
+body_bar <- ggplot(final_body_bar, aes(x = age_range, y = Number_injury, fill = overall)) +
   geom_col() +
   labs(x = "Age Range",
        y = "Number of Injuries for this Body Part",
        title = "Which Body Part was Most Injured by Age Ranges?",
        fill = "Body Part Injured") +
-  scale_fill_manual(values = c("#44AA99", "#CC6677", "#493C86", "#DDCC77"))
-
+  scale_fill_manual(values = c("#44AA99", "#CC6677", "#493C86", "#DDCC77")) 
 if (input$bar_EL == "all") { #if it's all barchart
     
  specific_age <- final_body_bar %>% 
@@ -797,7 +703,7 @@ body_bar + geom_col(data = specific_age, color = "#a50f15", size = 1.5) +
 } else { #if it's a specific age barchart
 
 body_total_age <- body_total %>% 
-  group_by(body) %>% 
+  group_by(overall) %>% 
   filter(age_range == case_when(input$age_EL <= 10 ~ "0-10", 
                                (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
                                (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
@@ -807,7 +713,7 @@ body_total_age <- body_total %>%
                                (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
                                (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
 
-body_bar <- ggplot(body_total_age, aes(x = reorder(body, Number_injury), y = Number_injury)) +
+body_bar <- ggplot(body_total_age, aes(x = reorder(overall, Number_injury), y = Number_injury)) +
   geom_col(fill = "#a50f15") +
   labs(x = "Body Part Injured",
        y = "Number of Injuries for this Body Part",
@@ -820,7 +726,7 @@ body_bar <- ggplot(body_total_age, aes(x = reorder(body, Number_injury), y = Num
                                (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
                                (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75")),
        fill = "Body Part Injured") +
-  interactive_theme
+  interactive_theme 
 
 body_bar
 }
@@ -828,100 +734,113 @@ body_bar
 })
 ```
 
-### Data points from your specific age
+### Which body part is most likely to get injured?
 
 ```{r}
 renderPlot({
   
-body_polygon <- bdgramr(data = data, model = "basic_male") 
-
-body_injury <- shark %>%
-  mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
-         body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
-         body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
-         body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4]) %>% 
-    filter(Victim.age == as.numeric(input$age_EL))
-
-if (input$gender_EL == "all") { #if the shark species is all
+ body_polygon <- bdgramr(data = data, model = "basic_male") 
   
-} else {
-  body_injury <- body_injury %>% 
-    filter(Victim.gender == input$gender_EL)
-}
+  body_injury <- shark %>%
+    mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
+           body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
+           body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
+           body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4],
+           age_range = case_when(Victim.age <= 10 ~ "0-10", 
+                                 (10 < Victim.age) & (Victim.age <= 20)  ~ "11-20",
+                                 (20 < Victim.age) & (Victim.age <= 30)  ~ "21-30",
+                                 (30 < Victim.age) & (Victim.age <= 40)  ~ "31-40",
+                                 (40 < Victim.age) & (Victim.age <= 50)  ~ "41-50",
+                                 (50 < Victim.age) & (Victim.age <= 60)  ~ "51-60",
+                                 (60 < Victim.age) & (Victim.age <= 70)  ~ "61-70",
+                                 (70 < Victim.age) & (Victim.age <= 75)  ~ "71-75",
+                                 Victim.age == " "                ~ NA)) 
+  
+  if (input$gender_EL == "all") { #if it's all genders
 
-body_1 <- body_injury %>% 
-  group_by(body_1) %>% 
-  rename(body = body_1) %>% 
-  filter(body != "") %>% 
-  summarize(sum = n())
-
-body_2 <- body_injury %>% 
-  group_by(body_2) %>% 
-  rename(body = body_2) %>% 
-  filter(body != "") %>% 
-  summarize(sum = n())
-
-body_3 <- body_injury %>% 
-  group_by(body_3) %>% 
-  rename(body = body_3) %>% 
-  filter(body != "") %>% 
-  summarize(sum = n())
-
-body_4 <- body_injury %>% 
-  group_by(body_4) %>% 
-  rename(body = body_4) %>% 
-  filter(body != "") %>% 
-  summarize(sum = n())
-
-body_12 <- rbind(body_1, body_2)
-body_123 <- rbind(body_12, body_3)
-body_1234 <- rbind(body_123, body_4)
-
-body_total <- body_1234 %>% 
-  group_by(body) %>%
-  summarize(Number_injury = sum(sum)) %>% 
-  mutate(body = ifelse(body == "left leg", "leg", body),
-         body = ifelse(body == "left foot", "foot", body),
-         overall = case_when(body == "ankle" ~ "foot",
-                            body == "calf" ~ "leg",
-                            body == "hand" ~ "arm",
-                            body == "leg" ~ "leg",
-                            body == "other: half of body recovered" ~ "",
-                            body == "other: uninjured" ~ "",
-                            body == "right" ~ "",
-                            body == "shoulder " ~ "shoulder",
-                            body == "torso" ~ "torso",
-                            body == "arm" ~ "arm",
-                            body == "foot" ~ "foot",
-                            body == "head" ~ "head",
-                            body == "other: body not recovered" ~ "torso",
-                            body == "other: multiple bites" ~ "torso",
-                            body == "pelvic region" ~ "pelvic region",
-                            body == "shoulder" ~ "shoulder",
-                            body == "thigh" ~ "leg")) %>% 
-  filter(overall != "") 
-
-body_polygon <- bdgramr(data = data, model = "basic_male") %>% 
-  mutate(body = case_when(Muscle == "Head" ~ "head",
-                          Muscle == "Pectoral" ~ "shoulder",
-                          Muscle == "Intercostal" ~ "torso",
-                          Muscle == "Abdominal" ~ "pelvic region",
-                          Muscle == "Quadriceps" ~ "thigh",
-                          Muscle == "Foot" ~ "foot",
-                          Muscle == "Shoulder" ~ "shoulder",
-                          Muscle == "Lower_back" ~ "torso",
-                          Muscle == "Hamstring" ~ "thigh",
-                          Muscle == "Clavicle" ~ "neck",
-                          Muscle == "Arm" ~ "arm",
-                          Muscle == "Forearm" ~ "arm",
-                          Muscle == "Hand" ~ "hand",
-                          Muscle == "Shin" ~ "calf",
-                          Muscle == "Neck" ~ "neck",
-                          Muscle == "Upper_back" ~ "torso",
-                          Muscle == "Gluteus_Maximus" ~ "pelvic region",
-                          Muscle == "Calf" ~ "calf"))
-
-body_combine <- full_join(body_polygon, body_total, by = "body", relationship = "many-to-many")
+  } else { #if it's a specific gender
+    body_injury <- body_injury %>%
+      filter(Victim.gender == input$gender_EL)
+  }
+  
+  body_1 <- body_injury %>% 
+    group_by(body_1, age_range) %>% 
+    rename(body = body_1) %>% 
+    filter(body != "") %>% 
+    summarize(sum = n())
+  
+  body_2 <- body_injury %>% 
+    group_by(body_2, age_range) %>% 
+    rename(body = body_2) %>% 
+    filter(body != "") %>% 
+    summarize(sum = n())
+  
+  body_3 <- body_injury %>% 
+    group_by(body_3, age_range) %>% 
+    rename(body = body_3) %>% 
+    filter(body != "") %>% 
+    summarize(sum = n())
+  
+  body_4 <- body_injury %>% 
+    group_by(body_4, age_range) %>% 
+    rename(body = body_4) %>% 
+    filter(body != "") %>% 
+    summarize(sum = n())
+  
+  body_12 <- rbind(body_1, body_2)
+  body_123 <- rbind(body_12, body_3)
+  body_1234 <- rbind(body_123, body_4)
+  
+  body_total <- body_1234 %>% 
+    group_by(body, age_range) %>%
+    mutate(body = ifelse(body == "left leg", "leg", body),
+           body = ifelse(body == "left foot", "foot", body)) %>% 
+    mutate(overall = case_when(body == "ankle" ~ "foot",
+                               body == "calf" ~ "leg",
+                               body == "hand" ~ "arm",
+                               body == "leg" ~ "leg",
+                               body == "other: half of body recovered" ~ "",
+                               body == "other: uninjured" ~ "",
+                               body == "right" ~ "",
+                               body == "shoulder " ~ "shoulder",
+                               body == "torso" ~ "torso",
+                               body == "arm" ~ "arm",
+                               body == "foot" ~ "foot",
+                               body == "head" ~ "head",
+                               body == "other: body not recovered" ~ "",
+                               body == "other: multiple bites" ~ "",
+                               body == "pelvic region" ~ "pelvic region",
+                               body == "shoulder" ~ "shoulder",
+                               body == "thigh" ~ "leg"),
+           body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>% 
+    filter(overall != "" ) %>% 
+    group_by(overall, age_range) %>% 
+    summarize(Number_injury = sum(sum)) %>% 
+    na.omit() %>% 
+    filter(age_range == input$age_EL)
+  
+  
+  body_polygon <- bdgramr(data = data, model = "basic_male") %>% 
+    mutate(body = case_when(Muscle == "Head" ~ "head",
+                            Muscle == "Pectoral" ~ "shoulder",
+                            Muscle == "Intercostal" ~ "torso",
+                            Muscle == "Abdominal" ~ "pelvic region",
+                            Muscle == "Quadriceps" ~ "leg",
+                            Muscle == "Foot" ~ "foot",
+                            Muscle == "Shoulder" ~ "shoulder",
+                            Muscle == "Lower_back" ~ "torso",
+                            Muscle == "Hamstring" ~ "leg",
+                            Muscle == "Clavicle" ~ "neck",
+                            Muscle == "Arm" ~ "arm",
+                            Muscle == "Forearm" ~ "arm",
+                            Muscle == "Hand" ~ "hand",
+                            Muscle == "Shin" ~ "leg",
+                            Muscle == "Neck" ~ "neck",
+                            Muscle == "Upper_Back" ~ "torso",
+                            Muscle == "Gluteus_Maximus" ~ "pelvic region",
+                            Muscle == "Calf" ~ "leg"))
+  
+  body_combine <- full_join(body_polygon, body_total, by = c("body" = "overall"), relationship = "many-to-one")
 
 
 ggplot(data = body_combine, aes(x,y, group = Id)) +
