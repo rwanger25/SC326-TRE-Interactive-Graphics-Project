@@ -64,7 +64,7 @@ interactive_theme <- theme_gray() +# White background, black and white theme
         plot.background = element_rect(fill = "#d1d4e3"))
 ```
 
-Introduction 
+Introduction
 =====================================
 ```{r}
 fluidPage(
@@ -72,6 +72,7 @@ fluidPage(
   
   fluidRow(
     column(12,
+      style = "border: 2px solid #8db8fc; padding: 20px",
       h3("Welcome to Australia!"),
       p("Shark attacks, while rare, are a significant cause for concern for beachgoers, swimmers, and surfers along Australia's coast. In this application, we analyze various factors contributing to shark attacks in Australia, including locations, timing, and shark species. Our goal is to help visitors and locals alike understand the patterns behind shark attacks and make informed decisions about water safety."),
       p("Through this interactive dashboard, you'll be able to explore historical data on shark attacks, view trends, and identify activities where safety measures may be most needed. Whether you're a tourist or a local, this tool aims to promote awareness and enhance safety practices when enjoying Australia's beautiful coastlines."),
@@ -82,11 +83,13 @@ fluidPage(
   
   fluidRow(
     column(6,
+      style = "border: 2px solid #8db8fc; padding: 20px",
       h4("Data Source"),
       p("The data used in this application is sourced from the publicly available Australian Shark-Incident Database (ASID) published by the Taronga Conservation Society Australia."),
       p("The full dataset can be accessed here: https://taronga.org.au/conservation-and-science/australian-shark-incident-database#thedatabase")
     ),
     column(6,
+      style = "border: 2px solid #8db8fc; padding: 20px",
       h4("Authors"),
       p("This application was developed by:"),
       tags$ul(
@@ -97,7 +100,6 @@ fluidPage(
     )
   )
 )
-
 
 ```
 
@@ -863,7 +865,7 @@ Column {.sidebar}
 
 ```{r}
 radioButtons("gender_button", label = "Select Gender", choices = c("All" = "all", "Female" = "female", "Male" = "male"))
-sliderInput("age_slider", "Select Age Range", min = 0, max = 90, value = c(0, 90))
+radioButtons("age_button", label = "Select Gender", choices = c("All" = "all", "0-10" = "0-10", "11-20" = "11-20", "21-30" = "21-30", "31-40" = "31-40", "41-50" = "41-50", "51-60" = "51-60", "61-70" = "61-70", "71-75" = "71-75"))
 ```
 
 Column
@@ -911,12 +913,75 @@ renderPlotly({
     sharks_act_filtered_v1 <- sharks_act %>%
       filter(Victim.gender == "male")
     }
+  if(input$age_button == "all")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1
+    }
+  if(input$age_button == "0-10")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 0) %>%
+      filter(Victim.age <= 10)
+    }
+  if(input$age_button == "11-20")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 11) %>%
+      filter(Victim.age <= 20)
+    }
+  if(input$age_button == "21-30")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 21) %>%
+      filter(Victim.age <= 30)
+    }
+  if(input$age_button == "31-40")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 31) %>%
+      filter(Victim.age <= 40)
+    }
+  if(input$age_button == "41-50")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 41) %>%
+      filter(Victim.age <= 50)
+    }
+  if(input$age_button == "51-60")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 51) %>%
+      filter(Victim.age <= 60)
+    }
+  if(input$age_button == "61-70")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 61) %>%
+      filter(Victim.age <= 70)
+    }
+  if(input$age_button == "71-75")
+    {
+    sharks_act_filtered <- sharks_act_filtered_v1 %>%
+      filter(Victim.age >= 71) %>%
+      filter(Victim.age <= 75)
+    }
   
-  sharks_act_filtered <- sharks_act_filtered_v1 %>% filter(Victim.age %in% (as.numeric(input$age_slider[1]):as.numeric(input$age_slider[2])))
+  p_act <- ggplot(sharks_act_filtered, aes(x = fct_infreq(Victim.activity), fill = Victim.activity, text = paste("Number of Attacks:", ..count..))) +
+    geom_bar() +
+    scale_fill_manual(values = c("Swimming" = "#a6cee3",
+                                 "Boarding" = "#1f78b4",
+                                 "Spearfishing" = "#b2df8a",
+                                 "Snorkeling" = "#33a02c",
+                                 "Diving" = "#fb9a99",
+                                 "Boating" = "#e31a1c",
+                                 "Standing in Water" = "#fdbf6f",
+                                 "Fishing" = "#ff7f00",
+                                 "Other" = "#cab2d6")) +
+    labs(x = "Activity", y = "Number of Shark Attacks") +
+    interactive_theme +
+    theme(legend.position = "none")
   
-  p_act <- ggplot(sharks_act_filtered, aes(x = fct_infreq(Victim.activity), fill = Victim.activity)) + geom_bar() + scale_fill_manual(values = c("Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6")) + labs(x = "Activity", y = "Number of Shark Attacks") + interactive_theme
-  
-  ggplotly(p_act)})
+  ggplotly(p_act, tooltip = "text")})
 ```
 
 When Should You Swim? {data-navmenu="Menu"}
@@ -938,50 +1003,82 @@ Column
 sharks_time <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
 sharks_time <- sharks_time %>%
-  select(Incident.month, Time.of.incident, Victim.gender, Victim.age)
-
-sharks_time$Time.of.incident <- floor(as.numeric(sharks_time$Time.of.incident) / 100) * 100
+  select(Incident.month, Incident.year, Time.of.incident) %>%
+  mutate(Incident.year = floor(Incident.year / 50) * 50) %>%
+      filter(Incident.year >= 1800) %>%
+  mutate(Time.of.incident = floor(as.numeric(Time.of.incident) / 100) * 100)
 
 sharks_time_month <- sharks_time %>%
-  group_by(Incident.month) %>%
+  group_by(Incident.month, Incident.year) %>%
   summarise(count_month = n())
 
 sharks_time_month <- sharks_time_month %>%
   drop_na(Incident.month)
 
+sharks_time_month <- rbind(sharks_time_month, c(Incident.month = 2, Incident.year = 1800, count_month = 0))
+sharks_time_month <- rbind(sharks_time_month, c(Incident.month = 5, Incident.year = 1800, count_month = 0))
+sharks_time_month <- rbind(sharks_time_month, c(Incident.month = 7, Incident.year = 1800, count_month = 0))
+sharks_time_month <- rbind(sharks_time_month, c(Incident.month = 9, Incident.year = 1800, count_month = 0))
+sharks_time_month <- rbind(sharks_time_month, c(Incident.month = 10, Incident.year = 1800, count_month = 0))
+
 sharks_time_month$Incident.month <- factor(sharks_time_month$Incident.month, levels = 1:12, labels = month.name)
 
 sharks_time_hour <- sharks_time %>%
-  group_by(Time.of.incident) %>%
+  group_by(Time.of.incident, Incident.year) %>%
   summarise(count_hour = n())
-
-for (n in seq(0, 2300, by = 100))
-{
-  if (!n %in% sharks_time_hour$Time.of.incident)
-  {
-    sharks_time_hour <- rbind(sharks_time_hour, c(n, 0))
-  }
-}
 
 sharks_time_hour <- sharks_time_hour %>%
   drop_na(Time.of.incident)
 
+all_combos <- expand.grid(
+  Time.of.incident = c(0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300),
+  Incident.year = c(1850, 1900, 1950, 2000)
+)
+
+sharks_time_hour <- merge(all_combos, sharks_time_hour, by = c("Time.of.incident", "Incident.year"), all.x = TRUE)
+
+sharks_time_hour$count_hour[is.na(sharks_time_hour$count_hour)] <- 0
+
+convert_to_time <- function(x) {
+  time_str <- sprintf("%04d", x)
+  time_obj <- strptime(time_str, format = "%H%M")
+  formatted_time <- format(time_obj, "%I:%M %p")
+  return(formatted_time)
+}
+
 renderPlotly({
   if(input$time_button == "month")
     {
-    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month)) + geom_point(color = "#0a144a") + geom_line(group = 1, color = "#0a144a") + labs(x = "Month", y = "Number of Shark Attacks") + interactive_theme
+    p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month, color = as.factor(Incident.year))) +
+      geom_point(aes(text = paste("Month:", Incident.month, "<br>Years:", Incident.year, "-", ifelse(Incident.year + 49 > 2024, 2024, Incident.year + 49), "<br>Number of Recorded Attacks:", count_month))) +
+      geom_line(aes(group = Incident.year)) + 
+      scale_color_manual(values = c("1800" = "#fcbba1",
+                                 "1850" = "#fc9272",
+                                 "1900" = "#fb6a4a",
+                                 "1950" = "#de2d26",
+                                 "2000" = "#a50f15")) +
+      labs(x = "Month", y = "Number of Shark Attacks", color = "Years") +
+      interactive_theme
     }
   else
     {
-    p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour)) + geom_point(color = "#0a144a") + geom_line(color = "#0a144a") + scale_x_continuous(breaks = seq(0, 2300, by = 200), labels = function(x) {
+    p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour, color = as.factor(Incident.year))) +
+      geom_point(aes(text = paste("Time:", sapply(Time.of.incident, convert_to_time), "-", sapply(Time.of.incident + 59, convert_to_time), "<br>Years:", Incident.year, "-", ifelse(Incident.year + 49 > 2024, 2024, Incident.year + 49), "<br>Number of Recorded Attacks:", count_hour))) +
+      geom_line(aes(group = Incident.year)) + scale_x_continuous(breaks = seq(0, 2300, by = 200), labels = function(x) {
       hour <- floor(x / 100)
       minute <- x %% 100
       time <- sprintf("%02d:%02d", hour, minute)
       format(strptime(time, "%H:%M"), "%I:%M %p")
       }
-      ) + labs(x = "Time of Day", y = "Number of Shark Attacks") + interactive_theme
+      ) + 
+      scale_color_manual(values = c("1850" = "#fc9272",
+                                 "1900" = "#fb6a4a",
+                                 "1950" = "#de2d26",
+                                 "2000" = "#a50f15")) +
+      labs(x = "Time of Day", y = "Number of Shark Attacks", color = "Years") +
+      interactive_theme
     }
-  ggplotly(p_time)
+  ggplotly(p_time, tooltip = "text")
   })
 ```
 
