@@ -248,6 +248,29 @@ shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the 
 
 ### Shark Attacks over Time
 
+Row {data-height=200}
+-----------------------------------------------------------------------
+
+### Based on these results, it appears that...
+
+The number of attacks and the age of people being attacked is increasing over time! Although, fortunately, the proportion of fatal attacks over time is decreasing. 
+
+Unfortunately, unprovoked attacks seem to occur more than provoked attacks and both are increasing over time. 
+
+If you are male, good luck! Throughout time, every 50 years, over ~80% of attacks occur with male victims. 
+
+While fatalities and major lacerations in association with shark attacks are decreasing, minor lacerations are increasing in proportion. 
+
+As for location, most of the attacks over time have also occurred coastally, and the proportion of the coastal attacks is increasing over time while the proportion of the attacks further out to sea or inland are decreasing or stagnant. 
+
+As for activities, swimming appeared to be more dangerous in the past up until the 2000s when boarding became more risky. Snorkeling, spearfishing, and diving are also slightly risky activities but in recent decades, less than 30% of shark attacks are associated to these activities. It also should be noted that even standing the water can be dangerous, with over 1% of shark attacks being attributed to standing in water every 50 years since the early 1900s. 
+
+
+
+Row 
+-----------------------------------------------------------------------
+
+### Shark Attacks over Time
 
 
 ```{r}
@@ -295,14 +318,16 @@ renderPlotly({
           NULL
         }
       ))
-    barchart_plot <- ggplot(dataframe_barchart_ordered, aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")),  fill = input$response_var, color = input$response_var)) +
+    barchart_plot <- ggplot(dataframe_barchart_ordered, 
+                            aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var)) +
       geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
       geom_point(aes(x = Year))+
          labs(x = "Years",
               y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
-              title = list(text = paste0( ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Severity Over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category Over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities Over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity Over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders Over Time", "")))))), '<br>',
+              title = list(text = paste0(paste0(paste0(ifelse(input$prop_count == "prop", "Proportion", "Count"),
+                paste0(ifelse(input$response_var == "Victim.injury", " of Victim Injury Type Over Time", ifelse(input$response_var == "Site.category", " of Shark Attack Site Categories Over Time", ifelse(input$response_var == "Provoked.unprovoked", " of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var == "Victim.activity", " of Victim Activities Over Time", ifelse(input$response_var == "Injury.severity", " of Injurity Severity Over Time", ifelse(input$response_var == "Victim.gender", " of Victim Genders Over Time", ""))))))))), '<br>',
                                     '<sup>',
-                                     '  Error Bars show 95% Confidence Interval, Dates are by 50 Years except for 2000-2024','</sup>')),
+                                     '  Error Bars show 95% Confidence Intervals, Dates are by 50 Years except for 2000-2024','</sup>')),
                # subtitle = "Error Bars show 95% Confidence Interval\nDates are by 50 Years except for 2000-2024",
               fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))),
               color = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", ""))))))) +
@@ -315,7 +340,6 @@ renderPlotly({
           labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
       interactive_theme +
       theme(legend.position = "bottom")
-    
 
      # Add error bars if selected
   if (input$error_bar & input$prop_count == "prop") {
@@ -330,16 +354,48 @@ renderPlotly({
     
   } 
     
-    return(ggplotly(barchart_plot))
+# Define tooltip based on the response variable
+    tooltip_text <- ""
+
+    if (input$prop_count == "prop") {
+      tooltip_text <- switch(input$response_var,
+                             "Victim.injury" = paste0("<br>Victim Injury: ", dataframe_barchart_ordered$Victim.injury,"<br>Proportion: ", dataframe_barchart_ordered$proportion_Victim.injury,"<br>Lower Proportion: ", dataframe_barchart_ordered$lower_Victim.injury,"<br>Upper Proportion: ", dataframe_barchart_ordered$upper_Victim.injury,"<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Site.category" = paste0("<br>Site Category: ", dataframe_barchart_ordered$Site.category,"<br>Proportion:", dataframe_barchart_ordered$proportion_Site.category, "<br>Lower Proportion: ", dataframe_barchart_ordered$lower_Site.category,"<br>Upper Proportion: ", dataframe_barchart_ordered$upper_Site.category, "<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Provoked.unprovoked" = paste0("<br>Provoked?: ", dataframe_barchart_ordered$Provoked.unprovoked,"<br>Proportion: ", dataframe_barchart_ordered$proportion_Provoked.unprovoked,"<br>Lower Proportion: ", dataframe_barchart_ordered$lower_Provoked.unprovoked,"<br>Upper Proportion: ", dataframe_barchart_ordered$upper_Provoked.unprovoked,"<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Victim.activity" = paste0("<br>Victim Activity: ", dataframe_barchart_ordered$Victim.activity, "<br>Proportion: ", dataframe_barchart_ordered$proportion_Victim.activity,"<br>Lower Proportion: ", dataframe_barchart_ordered$lower_Victim.activity,"<br>Upper Proportion: ", dataframe_barchart_ordered$upper_Victim.activity, "<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Injury.severity" = paste0("<br>Injury Severity: ", dataframe_barchart_ordered$Injury.severity, "<br>Proportion: ", dataframe_barchart_ordered$proportion_Injury.severity,"<br>Lower Proportion: ", dataframe_barchart_ordered$lower_Injury.severity,"<br>Upper Proportion: ", dataframe_barchart_ordered$upper_Injury.severity,"<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Victim.gender" = paste0("<br>Victim Gender: ", dataframe_barchart_ordered$Victim.gender, "<br>Proportion: ", dataframe_barchart_ordered$proportion_Victim.gender, "<br>Lower Proportion: ", dataframe_barchart_ordered$lower_Victim.gender,"<br>Upper Proportion: ", dataframe_barchart_ordered$upper_Victim.gender,"<br>Years: ", dataframe_barchart_ordered$Year),
+                             NULL)
+    } else {
+      tooltip_text <- switch(input$response_var,
+                             "Victim.injury" = paste0("<br>Victim Injury: ", dataframe_barchart_ordered$Victim.injury, "<br>Count: ", dataframe_barchart_ordered$count_Victim.injury,
+                                                      "<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Site.category" = paste0("<br>Site Category: ", dataframe_barchart_ordered$Site.category, "<br>Count: ", dataframe_barchart_ordered$count_Site.category,
+"<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Provoked.unprovoked" = paste0("<br>Provoked?: ", dataframe_barchart_ordered$Provoked.unprovoked, "<br>Count: ", dataframe_barchart_ordered$count_Provoked.unprovoked, "<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Victim.activity" = paste0("<br>Victim Activity: ", dataframe_barchart_ordered$Victim.activity,"<br>Count: ", dataframe_barchart_ordered$count_Victim.activity,
+                                                       "<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Injury.severity" = paste0("<br>Injury Severity: ", dataframe_barchart_ordered$Injury.severity,"<br>Count: ", dataframe_barchart_ordered$count_Injury.severity,
+                                                        "<br>Years: ", dataframe_barchart_ordered$Year),
+                             "Victim.gender" = paste0("<br>Victim Gender: ", dataframe_barchart_ordered$Victim.gender,"<br>Count: ", dataframe_barchart_ordered$count_Victim.gender,
+                                                      "<br>Years: ", dataframe_barchart_ordered$Year),
+                             NULL)
+    }
+
+    # Add tooltip_text to the plot
+    barchart_plot <- barchart_plot + aes(text = tooltip_text)
+    
+    return(ggplotly(barchart_plot, tooltip = "text"))
+
     
   } else if (input$response_var %in% lineplot) {
     lineplot_plot <- ggplot(data = dataframe_time(),
                             aes_string(x = "Incident.year", y = input$response_var)) +
-        geom_point() +
+        geom_point(alpha = 0.6, size = 0.8) +
         geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
         labs(x = "Date", 
              y = ifelse(input$response_var == "attack_count", "Number of Attacks", "Victim Age"),
-             title = ifelse(input$response_var ==  "Victim.age", "Victim Age during Shark Attacks between 1800-2024", ifelse(input$response_var == "attack_count", "Number of Australian Shark Attacks between 1800-2024", ""))) +
+             title = ifelse(input$response_var ==  "Victim.age", "Victim Age per Attack during Shark Attacks between 1800-2024", ifelse(input$response_var == "attack_count", "Number of Australian Shark Attacks per Year between 1800-2024", ""))) +
         #     scale_x_continuous(
         #     breaks = seq(1800, 2024, by = 10), # Set specific breaks
         #     labels = seq(1800, 2024, by = 10), # Label years explicitly
@@ -364,8 +420,27 @@ renderPlotly({
         #stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
         theme(axis.text.x = element_text(angle = 45, vjust = 0.8)) +
       interactive_theme
-  
+    
+    # # Define tooltip based on the response variable
+    # tooltip_text_date <- ""
+    # 
+    # if (input$response_var == "attack_count") {
+    #   tooltip_text_date = paste0("<br>Attack Count: ", shark_attacks_count$attack_count,
+    #                                                   "<br>Year: ", shark_attacks_count$Incident.year)
+    # } else {
+    #    tooltip_text_date = paste0("<br>Victim Age: ", shark_attacks_timeline$Victim.age,
+    #                                                   "<br>Year: ", shark_attacks_timeline$Incident.year)
+    # }
+    # 
+    # 
+    #     # Add tooltip_text to the plot
+    # lineplot_plot <- lineplot_plot + aes(text = tooltip_text_date) 
+    # 
+    # return(ggplotly(lineplot_plot, tooltip = "text"))
+
+
     return(ggplotly(lineplot_plot))
+  
    
   }
   
@@ -387,7 +462,8 @@ Column {.sidebar}
 #widgets for the barcharts
 
 radioButtons("response_var", label = h3("Attack Characteristic:"), 
-    choices = list("Number of Attacks" = "attack_count", "Victim Age" = "Victim.age", "Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
+    choices = list("Number of Attacks" = "attack_count", "Victim Age" = "Victim.age", "Provoked?" = "Provoked.unprovoked", "Victim Gender" = "Victim.gender",
+                   "Victim Injury" = "Victim.injury", "Injury Severity" = "Injury.severity", "Site Category" = "Site.category", "Victim Activity" = "Victim.activity"), selected = "Victim.injury")
 
 radioButtons("prop_count", label = h3("Proportions or Count:"), 
                    choices = list("Proportion" = "prop", "Count" = "count"))
