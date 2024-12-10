@@ -714,7 +714,8 @@ body_total_age <- body_total %>%
                                (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
 
 body_bar <- ggplot(body_total_age, aes(x = reorder(overall, Number_injury), y = Number_injury)) +
-  geom_col(fill = "#a50f15") +
+  geom_col(aes(fill = Number_injury)) +
+  scale_fill_gradient(low = "#fff5f0", high = "#a50f15" ) +
   labs(x = "Body Part Injured",
        y = "Number of Injuries for this Body Part",
        title = paste("Which Body Part was Most Injured in Ages", case_when(input$age_EL <= 10 ~ "0-10", 
