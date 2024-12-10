@@ -6,23 +6,39 @@ output:
 runtime: shiny
 ---
 
+```{r global, include=FALSE, warning=FALSE, message=FALSE}
+# loading in data in 'global' chunk so it can be shared by all users of the dashboard
+shark_attacks <- read.csv("Shark Dataset.csv")
 
-```{r}
-## Actually running and deploying the app
+# load packages in 'global' chunk so they can be shared by all users of the dashboard
+library(httr2)
+library(purrr)
+library(tibble)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(shiny)
+library(tidyr)
+library(ggseas) #to use stat_rollapplyr
+library(plotly)
+library(forcats)
 
-
-# #running the demo app
-# library(rsconnect)
-# rsconnect::setAccountInfo(name='ter1',
-# 			  token='0163EF6118B243DE8D0042631C039930',
-# 			  secret='rvvnmpSjrYZ8H/YL2sWWCZd71FQwVbamEkFlag8Z')
-# runApp()
-# deployApp()
-
+interactive_theme <- theme_gray() +# White background, black and white theme
+  theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
+        axis.title = element_text(family = "DIN Alternate", color = "#0a144a"),
+        axis.text = element_text(color = "#0a144a"),
+        legend.title = element_text(family = "DIN Alternate", face = "bold",  color = "#0a144a"),
+        legend.text = element_text(family = "DIN Alternate", color = "#0a144a"),
+        legend.box.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "#d1d4e3"),
+        panel.background = element_rect(fill = "#d1d4e3"),
+        plot.background = element_rect(fill = "#d1d4e3"))
 ```
 
+How Have Shark Attacks Changed Over Time?
+=====================================  
 
-```{r global, include=FALSE, warning=FALSE, message=FALSE}
+```{r global_time, include=FALSE, warning=FALSE, message=FALSE}
 
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
@@ -45,12 +61,14 @@ library(maps)
 
 shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
+
+
 # reading in the Australian state shapefiles
 
 load("aus_shp.RData")
   #st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
 
-View(shark_attacks)
+
 
 ```
 
@@ -73,11 +91,13 @@ shark_attacks <- shark_attacks %>%
   mutate(Injury.severity = case_when(Injury.severity == "abrasion" ~ "Abrasion", Injury.severity == "major lacerations" ~ "Major Lacerations", Injury.severity == "minor lacerations" ~ "Minor Lacerations", Injury.severity == "other: teeth marks" ~ "Other: Teeth Marks", Injury.severity == "punctures" ~ "Punctures", Injury.severity == "surface wound" ~ "Surface Wound")) %>%
   mutate(Site.category = case_when(Site.category == "coastal" ~ "Coastal",
                                    Site.category == "Coastal" ~ "Coastal",
-                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour",
+                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour", 
                                    Site.category == "island open ocean" ~ "Island Open Ocean", 
                                    Site.category == "ocean/pelagic" ~ "Ocean/Pelagic",
-                                   Site.category == "other: fish farm" ~ "Other: Fish Farm",
-                                   Site.category == "river" ~ "River")) %>%
+                                   Site.category == "other: fish farm" ~ "Other",
+                                   Site.category == "river" ~ "River",
+                                   is.na(Site.category) ~ "Other")) %>%
+  mutate(Site.category = as.factor(Site.category)) %>%
   filter(Incident.year != "1791") %>%
   mutate(Victim.activity = case_when(Victim.activity == "boarding" ~ "Boarding",
                                    Victim.activity == "diving" ~ "Diving",
@@ -97,11 +117,10 @@ shark_attacks <- shark_attacks %>%
                                    Victim.activity == "swimming" ~ "Swimming",
                                    Victim.activity == "unmotorised boating" ~ "Boating",
                                    Victim.activity == "" ~ NA)) %>%
+  
   filter(Incident.year != "1791") %>%
   group_by(Incident.year) %>%
    #creating mean columns
-  mutate(Shark.length.m.mean = mean(Shark.length.m)) %>%
-  mutate(No.sharks.mean = mean(No.sharks)) %>%
   mutate(Victim.age.mean = mean(Victim.age)) %>%
   #creating date groupings
   mutate(Year = case_when((Incident.year > 1800 & Incident.year <= 1850) ~ "1800-1850", 
@@ -114,18 +133,6 @@ shark_attacks <- shark_attacks %>%
 shark_attacks <- shark_attacks %>%
   group_by(Year) %>%
   mutate(Number_Attacks = n())
-
-
-interactive_theme <- theme_gray() +# White background, black and white theme
-  theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
-        axis.title = element_text(family = "DIN Alternate", color = "#0a144a"),
-        axis.text = element_text(color = "#0a144a"),
-        legend.title = element_text(family = "DIN Alternate", face = "bold",  color = "#0a144a"),
-        legend.text = element_text(family = "DIN Alternate", color = "#0a144a"),
-        legend.box.margin = margin(6, 6, 6, 6),
-        legend.background = element_rect(fill = "#d1d4e3"),
-        panel.background = element_rect(fill = "#d1d4e3"),
-        plot.background = element_rect(fill = "#d1d4e3"))
 
 ```
 
@@ -142,14 +149,18 @@ shark_attacks_timeline <- shark_attacks %>%
   # 
 #start and stop times
 
-start_time <- as.Date("1900-01-01")
-end_time <- as.Date("2024-03-01")
+start_time <- as.Date("1800-01-01")
+end_time <- as.Date("2024-01-01")
 
-start.end <- c(start_time,end_time)
+
+start.end <- c(start_time, end_time)
+
+shark_attacks_count <- shark_attacks_timeline %>%
+  group_by(Incident.year) %>%
+  summarise(attack_count = n()) %>%
+  mutate(Incident.year = as.Date(Incident.year, format = "%Y"))
 
 ```
-
-
 
 ```{r}
 
@@ -178,8 +189,9 @@ shark_attacks_proportions_Site.category <- shark_attacks %>%  #  Start with the 
          proportion_Site.category = count_Site.category / total_Site.category,  
          std_error_Site.category = sqrt(proportion_Site.category * (1-proportion_Site.category) / total_Site.category),  
          lower_Site.category = proportion_Site.category - 1.96 * std_error_Site.category,  
-         upper_Site.category = proportion_Site.category + 1.96 * std_error_Site.category)
-  
+         upper_Site.category = proportion_Site.category + 1.96 * std_error_Site.category) 
+
+
 
 #Provoked.unprovoked
 shark_attacks_proportions_Provoked.unprovoked <- shark_attacks %>%  #  Start with the cereal data.frame
@@ -201,7 +213,7 @@ shark_attacks_proportions_Victim.activity <- shark_attacks %>%  #  Start with th
   mutate(total_Victim.activity = sum(count_Victim.activity),  
          proportion_Victim.activity = count_Victim.activity / total_Victim.activity,  
          std_error_Victim.activity = sqrt(proportion_Victim.activity * (1-proportion_Victim.activity) / total_Victim.activity),  
-         lower_Victim.activity = proportion_Victim.activity - 1.96 * std_error_Victim.activity,  
+         lower_Victim.activity = proportion_Victim.activity - 1.96 * std_error_Victim.activity,
          upper_Victim.activity = proportion_Victim.activity + 1.96 * std_error_Victim.activity)
 
 
@@ -231,56 +243,8 @@ shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the 
 
 
 
-```
-
-```{r}
-#loading in the sf data
-
-#removing the spaces in the latitude and longitude data that causes errors
-shark_attacks_fixed_latlon <- shark_attacks %>%
-  mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
-  mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
-  mutate(Latitude = as.numeric(Latitude)) %>%
-  mutate(Longitude = as.numeric(Longitude)) %>%
-  filter(is.na(Latitude) == F) %>%
-  filter(is.na(Longitude) == F)
-
-
-# To make the map with points
-shark_attacks_sf <- shark_attacks_fixed_latlon %>%
-  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
-  st_transform(crs = 3577)
-
-
-#crop the australia polygon 
-aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)   
-
-#aus_shp <- aus_shp$geometry #assigning only the geometry of the states
-aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
-
-#filtering out other territories
-aus_shp <- aus_shp %>%
-  filter(STE_NAME21 != "Other Territories")
-
-
-
 
 ```
-
-
-```{r}
-
-
-```
-
-
-Introduction: You Won a Trip to Australia!
-=====================================  
-
-
-How Have Shark Attacks Changed Over Time?
-=====================================  
-
 
 ### Shark Attacks over Time
 
@@ -312,54 +276,95 @@ barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.a
 
 renderPlotly({
   if(input$response_var %in% barchart){
-    # barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
-    #   geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
-    #   geom_point(aes(x = Year))+
-
-      barchart_plot <- ggplot(dataframe_barchart(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = "Year")) +
-      geom_line(aes_string(x = input$response_var, group = "Year", color = "Year"))+
-      geom_point(aes_string(x = input$response_var, group = "Year", color = "Year"))+
-        # geom_bar(aes(x = Year), stat = "identity", position = position_dodge(preserve = "single")) +
-         labs(x = "Year",
+    
+    dataframe_barchart_ordered <- dataframe_barchart() %>%
+      mutate(!!sym(input$response_var) := factor(!!sym(input$response_var), 
+        levels = if (input$response_var == "Victim.injury") {
+          c("Fatal", "Injured", "Uninjured")
+        } else if (input$response_var == "Site.category") {
+          c("Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other")
+        } else if (input$response_var == "Provoked.unprovoked") {
+          c("Provoked", "Unprovoked")
+        } else if (input$response_var == "Victim.activity") {
+          c("Boarding", "Boating", "Diving", "Fishing", "Motorised Boating", "Other", "Snorkeling", "Spearfishing", "Standing in Water", "Swimming")
+        } else if (input$response_var == "Injury.severity") {
+          c("Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks")
+        } else if (input$response_var == "Victim.gender") {
+          c("Male", "Female")
+        } else {
+          NULL
+        }
+      ))
+    barchart_plot <- ggplot(dataframe_barchart_ordered, aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")),  fill = input$response_var, color = input$response_var)) +
+      geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
+      geom_point(aes(x = Year))+
+         labs(x = "Years",
               y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
-              title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Severity Over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category Over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities Over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity Over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders Over Time", "")))))),
-              fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", ""))))))) +
-      scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+
+              title = list(text = paste0( ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Severity Over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category Over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities Over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity Over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders Over Time", "")))))), '<br>',
+                                    '<sup>',
+                                     '  Error Bars show 95% Confidence Interval, Dates are by 50 Years except for 2000-2024','</sup>')),
+               # subtitle = "Error Bars show 95% Confidence Interval\nDates are by 50 Years except for 2000-2024",
+              fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))),
+              color = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", ""))))))) +
+      scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6f", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"),
+           labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
 
-       scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) +
-        
-        # scale_color_brewer(palette = "Greys") + 
-        # scale_fill_brewer(palette = "Greys") +
+       scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6b", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"),
+          labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
       interactive_theme +
       theme(legend.position = "bottom")
+    
+
      # Add error bars if selected
   if (input$error_bar & input$prop_count == "prop") {
     barchart_plot <- barchart_plot +
-      geom_errorbar(data = dataframe_barchart(), 
+      geom_errorbar(data = dataframe_barchart_ordered, 
                     aes_string(x = "Year", 
                                ymin = paste0("lower_", input$response_var), 
-                               ymax = paste0("upper_", input$response_var)), 
-                    color = "red", position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single")
+                               ymax = paste0("upper_", input$response_var), 
+                               color =  input$response_var), 
+                    position = position_dodge(preserve = "single")) + # position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single")
+          geom_point(aes(x = Year))
     
-    } 
-
+  } 
     
-    return(ggplotly(barchart_plot)) 
-   
+    return(ggplotly(barchart_plot))
+    
   } else if (input$response_var %in% lineplot) {
     lineplot_plot <- ggplot(data = dataframe_time(),
                             aes_string(x = "Incident.year", y = input$response_var)) +
-        #geom_line()+
         geom_point() +
         geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
-        labs(x = "Date", y = "Victim Age") +
-        scale_x_date(date_breaks = "10 years", date_labels = ifelse(input$response_var == "attack_count", "%Y", "%m/%Y"), limits = start.end) +
+        labs(x = "Date", 
+             y = ifelse(input$response_var == "attack_count", "Number of Attacks", "Victim Age"),
+             title = ifelse(input$response_var ==  "Victim.age", "Victim Age during Shark Attacks between 1800-2024", ifelse(input$response_var == "attack_count", "Number of Australian Shark Attacks between 1800-2024", ""))) +
+        #     scale_x_continuous(
+        #     breaks = seq(1800, 2024, by = 10), # Set specific breaks
+        #     labels = seq(1800, 2024, by = 10), # Label years explicitly
+        #     limits = c(1800, 2024) # Specify numeric limits
+        # ) +
+       scale_x_date(date_breaks = "10 years", date_labels = ifelse(input$response_var == "attack_count", "%Y", "%Y"), limits = start.end) +
+
+      #ifelse(input$response_var == "attack_count", "%Y", "%Y")
+      # scale_x_continuous(
+      #       breaks = seq(1800, 2024, by = 10),
+      #       labels = as.character(seq(1800, 2024, by = 10)),
+      #       limits = c(1800, 2024)
+      #   ) +
+      # coord_cartesian(xlim = as.Date(c("1800-01-01", "2024-01-01"))) +
+          # coord_cartesian(xlim = c(as_date(1800, 2024))) +
+  # coord_cartesian(xlim=c(as_date("1800-01-01","2024-03-01")))+
+    
+    
+#     start_time <- as.Date("1800-01-01")
+# end_time <- as.Date("2024-03-01")
+#       xlim(c("1800", "2024")) + 
         #stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
         theme(axis.text.x = element_text(angle = 45, vjust = 0.8)) +
       interactive_theme
-    
+  
     return(ggplotly(lineplot_plot))
    
   }
@@ -392,69 +397,102 @@ checkboxInput("error_bar", label = h4("Include Error Bar"))
 ```
 
 
-Where are Shark Attacks Occuring?
-=====================================  
+<!-- Where are Shark Attacks Occuring? -->
+<!-- =====================================   -->
 
-Sidebar {.sidebar}
------------------------------------------------------------------------
+<!-- ```{r} -->
+<!-- #loading in the sf data -->
 
-```{r}
-#widgets for the map of australia 
-
-# sliderInput("point_transp", label = h3("Point Transparency"), min = 0, 
-#         max = 5, value = 1, step = 0.1)
-# 
-# sliderInput("point_size", label = "Point size:",
-#              min = 0.5, max = 3, value = 2, step = 0.5)
-
-radioButtons("response_var_map", label = h3("Attack Characteristic:"),
-    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
-
-radioButtons("response_var_map", label = h3("Attack Characteristic:"),
-    choices = list("New South Wales" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
-
-aus_shp$STE_NAME21
-STE_NAME21$
-
-#"Victim Age" = "Victim.age", "Shark Length" = "Shark.length.m", "Number of Sharks During the Attacks" = "No.sharks", 
-
-```
-
-Column 
------------------------------------------------------------------------
-
-```{r}
-
-aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T
-shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
-
-renderPlotly({
-  map <- ggplot()+
-    geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
-    labs(x = "", y = "", fill = "State") +
-    geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
-    geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", paste(Incident.month, Incident.year, sep = "/"), 
-                      "<br>Location: ", Location,
-                      "<br>Victim Activity:" , Victim.activity,
-                      "<br>Injury Type: ", Victim.injury,
-                      "<br>Victim Gender: ", Victim.gender,
-                      "<br>Site Category: ", Site.category,
-                      "<br>Injury Severity: ", Injury.severity)), 
-          size = 1.5) +
-    scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+
-
-       scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) +
-      interactive_theme
-    
-  
-  return(ggplotly(map))
-
-})
+<!-- #removing the spaces in the latitude and longitude data that causes errors -->
+<!-- shark_attacks_fixed_latlon <- shark_attacks %>% -->
+<!--   mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>% -->
+<!--   mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>% -->
+<!--   mutate(Latitude = as.numeric(Latitude)) %>% -->
+<!--   mutate(Longitude = as.numeric(Longitude)) %>% -->
+<!--   filter(is.na(Latitude) == F) %>% -->
+<!--   filter(is.na(Longitude) == F) -->
 
 
-```
+<!-- # To make the map with points -->
+<!-- shark_attacks_sf <- shark_attacks_fixed_latlon %>% -->
+<!--   st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>% -->
+<!--   st_transform(crs = 3577) -->
+
+
+<!-- #crop the australia polygon  -->
+<!-- aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)    -->
+
+<!-- #aus_shp <- aus_shp$geometry #assigning only the geometry of the states -->
+<!-- aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577)) -->
+
+<!-- #filtering out other territories -->
+<!-- aus_shp <- aus_shp %>% -->
+<!--   filter(STE_NAME21 != "Other Territories") -->
+
+
+
+
+<!-- ``` -->
+
+<!-- Sidebar {.sidebar} -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- ```{r} -->
+<!-- #widgets for the map of australia  -->
+
+<!-- # sliderInput("point_transp", label = h3("Point Transparency"), min = 0,  -->
+<!-- #         max = 5, value = 1, step = 0.1) -->
+<!-- #  -->
+<!-- # sliderInput("point_size", label = "Point size:", -->
+<!-- #              min = 0.5, max = 3, value = 2, step = 0.5) -->
+
+<!-- radioButtons("response_var_map", label = h3("Attack Characteristic:"), -->
+<!--     choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury") -->
+
+<!-- # radioButtons("response_var_map", label = h3("Attack Characteristic:"), -->
+<!-- #     choices = list("New South Wales" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury") -->
+
+
+
+
+
+<!-- ``` -->
+
+<!-- Column  -->
+<!-- ----------------------------------------------------------------------- -->
+
+<!-- ```{r} -->
+
+<!-- aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T -->
+<!-- shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT") -->
+
+<!-- renderPlotly({ -->
+<!--   map <- ggplot()+ -->
+<!--     geom_sf(data = aus_shp, aes(fill = STE_NAME21)) + -->
+<!--     labs(x = "", y = "", fill = "State") + -->
+<!--     geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) + -->
+<!--     geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", paste(Incident.month, Incident.year, sep = "/"),  -->
+<!--                       "<br>Location: ", Location, -->
+<!--                       "<br>Victim Activity:" , Victim.activity, -->
+<!--                       "<br>Injury Type: ", Victim.injury, -->
+<!--                       "<br>Victim Gender: ", Victim.gender, -->
+<!--                       "<br>Site Category: ", Site.category, -->
+<!--                       "<br>Injury Severity: ", Injury.severity)),  -->
+<!--           size = 1.5) + -->
+<!--     scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6", -->
+<!--           "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+ -->
+
+<!--        scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6", -->
+<!--           "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) + -->
+<!--       interactive_theme -->
+
+
+<!--   return(ggplotly(map)) -->
+
+<!-- }) -->
+
+
+<!-- ``` -->
 
 
 

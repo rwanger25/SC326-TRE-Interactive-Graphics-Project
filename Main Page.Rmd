@@ -1298,26 +1298,26 @@ barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.a
 
 renderPlotly({
   if(input$response_var %in% barchart){
-    # barchart_plot <- ggplot(dataframe(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
-    #   geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
-    #   geom_point(aes(x = Year))+
+    barchart_plot <- ggplot(dataframe_barchart(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = input$response_var)) +
+      geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
+      geom_point(aes(x = Year))+
 
-      barchart_plot <- ggplot(dataframe_barchart(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = "Year")) +
-      geom_line(aes_string(x = input$response_var, group = "Year", color = "Year"))+
-      geom_point(aes_string(x = input$response_var, group = "Year", color = "Year"))+
+      # barchart_plot <- ggplot(dataframe_barchart(), aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), "")), fill = "Year")) +
+      # geom_line(aes_string(x = input$response_var, group = "Year", color = "Year"))+
+      # geom_point(aes_string(x = input$response_var, group = "Year", color = "Year"))+
         # geom_bar(aes(x = Year), stat = "identity", position = position_dodge(preserve = "single")) +
          labs(x = "Year",
               y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
               title = ifelse(input$response_var == "Victim.injury", "Proportion of Victim Injuries Severity Over Time", ifelse(input$response_var == "Site.category", "Proportion of Shark Attack Site Category Over Time", ifelse(input$response_var == "Provoked.unprovoked", "Proportion of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var == "Victim.activity", "Proportion of Victim Activities Over Time", ifelse(input$response_var == "Injury.severity", "Proportion of Injurity Severity Over Time", ifelse(input$response_var == "Victim.gender", "Proportion of Victim Genders Over Time", "")))))),
               fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", ""))))))) +
-      # scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-      #     "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+
-      # 
-      #  scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-      #     "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) +
+      scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+
+
+       scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) +
         
-        scale_color_brewer(palette = "Greys") +
-        scale_fill_brewer(palette = "Greys") +
+        # scale_color_brewer(palette = "Greys") +
+        # scale_fill_brewer(palette = "Greys") +
       interactive_theme +
       theme(legend.position = "bottom")
      # Add error bars if selected
@@ -1327,7 +1327,7 @@ renderPlotly({
                     aes_string(x = "Year", 
                                ymin = paste0("lower_", input$response_var), 
                                ymax = paste0("upper_", input$response_var)), 
-                    color = "red", position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single")
+                    color = "red", position_dodge(preserve = "single"))# position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single")
     
     } 
 
