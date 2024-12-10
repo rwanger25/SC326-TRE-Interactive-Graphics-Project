@@ -469,15 +469,16 @@ renderPlot({ #going into the if statements
   mutate(fatal = ifelse(Victim.injury == "fatal", "Fatal", "Not fatal"))
     
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
-  geom_boxplot( ) +
-  scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
-  scale_color_manual(values = c("#8c3a40","#343d6b")) +
-  geom_rug( aes(color = fatal)) +
+  geom_boxplot(alpha = 0.5 ) +
+  scale_fill_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  scale_color_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  geom_jitter( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Not Fatal Attack",
        y = "Shark Length (m)",
        title = "Are Longer Sharks More Fatal?",
-       fill = "Fatal or Not Fatal") +
+       fill = "Fatal or Not Fatal",
+       color = "Fatal or Not Fatal") +
     interactive_theme
     
   } else { # and they either provoke or unprovoke
@@ -487,15 +488,16 @@ renderPlot({ #going into the if statements
     filter(Provoked.unprovoked == input$provoke_EL) # only taking the provoked or unprovoked options
 
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
-  geom_boxplot( ) +
-      scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
-  scale_color_manual(values = c("#8c3a40","#343d6b")) +
-  geom_rug( aes(color = fatal)) +
+  geom_boxplot( alpha = 0.5) +
+  scale_fill_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  scale_color_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  geom_jitter( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Not Fatal Attack",
        y = "Shark Length (m)",
        title = paste("Are Longer Sharks More Fatal?-", str_to_title(input$provoke_EL)),
-       fill = "Fatal or Not Fatal") +
+       fill = "Fatal or Not Fatal",
+       color = "Fatal or Not Fatal") +
     interactive_theme
   } 
 } else { # if the shark species is not all
@@ -508,15 +510,16 @@ renderPlot({ #going into the if statements
 
     
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
-  geom_boxplot( ) +
-      scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
-  scale_color_manual(values = c("#8c3a40","#343d6b")) +
-  geom_rug( aes(color = fatal)) +
+  geom_boxplot(alpha = 0.5 ) +
+  scale_fill_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  scale_color_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  geom_jitter( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Not Fatal Attack",
        y = "Shark Length (m)",
        title = paste("Are Longer", str_to_title(input$shark_species_EL), "More Fatal?"),
-       fill = "Fatal or Not Fatal") +
+       fill = "Fatal or Not Fatal",
+       color = "Fatal or Not Fatal") +
     interactive_theme
   
   } else { # and they either provoke or unprovoke
@@ -529,15 +532,16 @@ fatal_shark <- shark %>%
 
     
   ggplot(fatal_shark, aes(fatal, Shark.length.m, fill = fatal)) +
-  geom_boxplot( ) +
-      scale_fill_manual(values = c("#8c3a40", "#343d6b")) +
-  scale_color_manual(values = c("#8c3a40","#343d6b")) +
-  geom_rug( aes(color = fatal)) +
+  geom_boxplot(alpha = 0.5) +
+  scale_fill_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  scale_color_manual(values = c("Fatal" = "#8c3a40", "Not fatal" = "#343d6b")) +
+  geom_jitter( aes(color = fatal)) +
   theme(legend.position = "none") +
   labs(x = "Fatal or Not Fatal Attack",
        y = "Shark Length (m)",
        title = paste("Are Longer", str_to_title(input$shark_species_EL), "More Fatal?-", str_to_title(input$provoke_EL)),
-       fill = "Fatal or Not Fatal") +
+       fill = "Fatal or Not Fatal",
+       color = "Fatal or Not Fatal") +
     interactive_theme
   } 
 }
