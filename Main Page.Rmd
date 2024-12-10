@@ -1201,7 +1201,7 @@ shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the 
 ```
 
 
-Row {data-height=200}
+Row {data-height=100}
 -----------------------------------------------------------------------
 
 ### Based on these results, it appears that...
@@ -1429,6 +1429,8 @@ checkboxInput("error_bar", label = h4("Include Error Bar"))
 Where are Shark Attacks Occuring? {data-navmenu="Menu"}
 =====================================
 
+
+
 ```{r}
 #loading in the sf data
 
@@ -1487,7 +1489,12 @@ radioButtons("response_var_map", label = h3("Attack Characteristic:"),
 
 ```
 
-Column
+
+Row {data-height=30}
+-----------------------------------------------------------------------
+This map is to better understand where certain types of attacks appear to occur. Click different attack characteristics to see where the type of attacks are occurring. Hover over different points to learn more about the attacks!
+
+Row
 -----------------------------------------------------------------------
 
 ```{r}
@@ -1495,10 +1502,34 @@ Column
 aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T
 shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
 
+
+
 renderPlotly({
+  shark_attacks_sf <- shark_attacks_sf %>%
+      mutate(!!sym(input$response_var_map) := factor(!!sym(input$response_var_map), 
+        levels = if (input$response_var_map == "Victim.injury") {
+          c("Fatal", "Injured", "Uninjured")
+        } else if (input$response_var_map == "Site.category") {
+          c("Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other")
+        } else if (input$response_var_map == "Provoked.unprovoked") {
+          c("Provoked", "Unprovoked")
+        } else if (input$response_var_map == "Victim.activity") {
+          c("Boarding", "Boating", "Diving", "Fishing", "Motorised Boating", "Other", "Snorkeling", "Spearfishing", "Standing in Water", "Swimming")
+        } else if (input$response_var_map == "Injury.severity") {
+          c("Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks")
+        } else if (input$response_var_map == "Victim.gender") {
+          c("Male", "Female")
+        } else {
+          NULL
+        }
+      ))
+  
   map <- ggplot()+
-    geom_sf(data = aus_shp, aes(fill = STE_NAME21)) +
-    labs(x = "", y = "", fill = "State") +
+    geom_sf(data = aus_shp) +
+    labs(x = "", y = "", 
+         title = list(text = 
+                paste0("Location", ifelse(input$response_var_map == "Victim.injury", " of Victim Injury Type across Australia", ifelse(input$response_var_map == "Site.category", " of Shark Attack Site Categories Over Time", ifelse(input$response_var_map == "Provoked.unprovoked", " of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var_map == "Victim.activity", " of Victim Activities Over Time", ifelse(input$response_var_map == "Injury.severity", " of Injurity Severity Over Time", ifelse(input$response_var_map == "Victim.gender", " of Victim Genders Over Time", "")))))))),
+              fill = ifelse(input$response_var_map == "Victim.injury", "Victim Injuries", ifelse(input$response_var_map == "Site.category", "Site Categories", ifelse(input$response_var_map == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var_map == "Victim.activity", "Victim Activities", ifelse(input$response_var_map == "Injury.severity", "Injurity Severity", ifelse(input$response_var_map == "Victim.gender", "Victim Gender", ""))))))) +
     geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
     geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", paste(Incident.month, Incident.year, sep = "/"),
                       "<br>Location: ", Location,
@@ -1508,11 +1539,9 @@ renderPlotly({
                       "<br>Site Category: ", Site.category,
                       "<br>Injury Severity: ", Injury.severity)),
           size = 1.5) +
-    scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+
-
-       scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) +
+        scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6b", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99", is.na = "black"),
+          labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
       interactive_theme
 
 
@@ -1522,7 +1551,6 @@ renderPlotly({
 
 
 ```
-
 
 
 

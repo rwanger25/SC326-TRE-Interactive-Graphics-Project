@@ -6,39 +6,13 @@ output:
 runtime: shiny
 ---
 
-```{r global, include=FALSE, warning=FALSE, message=FALSE}
-# loading in data in 'global' chunk so it can be shared by all users of the dashboard
-shark_attacks <- read.csv("Shark Dataset.csv")
-
-# load packages in 'global' chunk so they can be shared by all users of the dashboard
-library(httr2)
-library(purrr)
-library(tibble)
-library(lubridate)
-library(dplyr)
-library(ggplot2)
-library(shiny)
-library(tidyr)
-library(ggseas) #to use stat_rollapplyr
-library(plotly)
-library(forcats)
-
-interactive_theme <- theme_gray() +# White background, black and white theme
-  theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
-        axis.title = element_text(family = "DIN Alternate", color = "#0a144a"),
-        axis.text = element_text(color = "#0a144a"),
-        legend.title = element_text(family = "DIN Alternate", face = "bold",  color = "#0a144a"),
-        legend.text = element_text(family = "DIN Alternate", color = "#0a144a"),
-        legend.box.margin = margin(6, 6, 6, 6),
-        legend.background = element_rect(fill = "#d1d4e3"),
-        panel.background = element_rect(fill = "#d1d4e3"),
-        plot.background = element_rect(fill = "#d1d4e3"))
-```
 
 How Have Shark Attacks Changed Over Time?
 =====================================  
 
 ```{r global_time, include=FALSE, warning=FALSE, message=FALSE}
+# loading in data in 'global' chunk so it can be shared by all users of the dashboard
+
 
 # load packages in 'global' chunk so they can be shared by all users of the dashboard
 library(httr2)
@@ -68,7 +42,16 @@ shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv
 load("aus_shp.RData")
   #st_read("./STE_2021_AUST_SHP_GDA94/STE_2021_AUST_GDA94.shp")
 
-
+interactive_theme <- theme_gray() +# White background, black and white theme
+  theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
+        axis.title = element_text(family = "DIN Alternate", color = "#0a144a"),
+        axis.text = element_text(color = "#0a144a"),
+        legend.title = element_text(family = "DIN Alternate", face = "bold",  color = "#0a144a"),
+        legend.text = element_text(family = "DIN Alternate", color = "#0a144a"),
+        legend.box.margin = margin(6, 6, 6, 6),
+        legend.background = element_rect(fill = "#d1d4e3"),
+        panel.background = element_rect(fill = "#d1d4e3"),
+        plot.background = element_rect(fill = "#d1d4e3"))
 
 ```
 
@@ -473,104 +456,134 @@ checkboxInput("error_bar", label = h4("Include Error Bar"))
 ```
 
 
-<!-- Where are Shark Attacks Occuring? -->
-<!-- =====================================   -->
-
-<!-- ```{r} -->
-<!-- #loading in the sf data -->
-
-<!-- #removing the spaces in the latitude and longitude data that causes errors -->
-<!-- shark_attacks_fixed_latlon <- shark_attacks %>% -->
-<!--   mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>% -->
-<!--   mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>% -->
-<!--   mutate(Latitude = as.numeric(Latitude)) %>% -->
-<!--   mutate(Longitude = as.numeric(Longitude)) %>% -->
-<!--   filter(is.na(Latitude) == F) %>% -->
-<!--   filter(is.na(Longitude) == F) -->
+Where are Shark Attacks Occuring?
+=====================================
 
 
-<!-- # To make the map with points -->
-<!-- shark_attacks_sf <- shark_attacks_fixed_latlon %>% -->
-<!--   st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>% -->
-<!--   st_transform(crs = 3577) -->
+```{r}
+#loading in the sf data
+
+#removing the spaces in the latitude and longitude data that causes errors
+shark_attacks_fixed_latlon <- shark_attacks %>%
+  mutate(Latitude = str_replace_all(Latitude, "\\s+", "")) %>%
+  mutate(Longitude = str_replace_all(Longitude, "\\s+", "")) %>%
+  mutate(Latitude = as.numeric(Latitude)) %>%
+  mutate(Longitude = as.numeric(Longitude)) %>%
+  filter(is.na(Latitude) == F) %>%
+  filter(is.na(Longitude) == F)
 
 
-<!-- #crop the australia polygon  -->
-<!-- aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)    -->
-
-<!-- #aus_shp <- aus_shp$geometry #assigning only the geometry of the states -->
-<!-- aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577)) -->
-
-<!-- #filtering out other territories -->
-<!-- aus_shp <- aus_shp %>% -->
-<!--   filter(STE_NAME21 != "Other Territories") -->
+# To make the map with points
+shark_attacks_sf <- shark_attacks_fixed_latlon %>%
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>%
+  st_transform(crs = 3577)
 
 
+#crop the australia polygon
+aus_shp <- st_crop(aus_shp, xmin = 113, ymin = -43.9, xmax = 153.9, ymax = -10) #100, ymin = -46, xmax = 160, ymax = -12)
 
+#aus_shp <- aus_shp$geometry #assigning only the geometry of the states
+aus_shp <- st_as_sf(st_transform(aus_shp, crs = 3577))
 
-<!-- ``` -->
-
-<!-- Sidebar {.sidebar} -->
-<!-- ----------------------------------------------------------------------- -->
-
-<!-- ```{r} -->
-<!-- #widgets for the map of australia  -->
-
-<!-- # sliderInput("point_transp", label = h3("Point Transparency"), min = 0,  -->
-<!-- #         max = 5, value = 1, step = 0.1) -->
-<!-- #  -->
-<!-- # sliderInput("point_size", label = "Point size:", -->
-<!-- #              min = 0.5, max = 3, value = 2, step = 0.5) -->
-
-<!-- radioButtons("response_var_map", label = h3("Attack Characteristic:"), -->
-<!--     choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury") -->
-
-<!-- # radioButtons("response_var_map", label = h3("Attack Characteristic:"), -->
-<!-- #     choices = list("New South Wales" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury") -->
+#filtering out other territories
+aus_shp <- aus_shp %>%
+  filter(STE_NAME21 != "Other Territories")
 
 
 
 
+```
 
-<!-- ``` -->
+Sidebar {.sidebar}
+-----------------------------------------------------------------------
 
-<!-- Column  -->
-<!-- ----------------------------------------------------------------------- -->
+```{r}
+#widgets for the map of australia
 
-<!-- ```{r} -->
+# sliderInput("point_transp", label = h3("Point Transparency"), min = 0,
+#         max = 5, value = 1, step = 0.1)
+#
+# sliderInput("point_size", label = "Point size:",
+#              min = 0.5, max = 3, value = 2, step = 0.5)
 
-<!-- aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T -->
-<!-- shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT") -->
+radioButtons("response_var_map", label = h3("Attack Characteristic:"),
+    choices = list("Victim Injury" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
-<!-- renderPlotly({ -->
-<!--   map <- ggplot()+ -->
-<!--     geom_sf(data = aus_shp, aes(fill = STE_NAME21)) + -->
-<!--     labs(x = "", y = "", fill = "State") + -->
-<!--     geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) + -->
-<!--     geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", paste(Incident.month, Incident.year, sep = "/"),  -->
-<!--                       "<br>Location: ", Location, -->
-<!--                       "<br>Victim Activity:" , Victim.activity, -->
-<!--                       "<br>Injury Type: ", Victim.injury, -->
-<!--                       "<br>Victim Gender: ", Victim.gender, -->
-<!--                       "<br>Site Category: ", Site.category, -->
-<!--                       "<br>Injury Severity: ", Injury.severity)),  -->
-<!--           size = 1.5) + -->
-<!--     scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#d0d1e6","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6", -->
-<!--           "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99"))+ -->
-
-<!--        scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Island Open Ocean" = "#045a8d", "Estuary/Habor" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other: Fish Farm" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6", -->
-<!--           "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99")) + -->
-<!--       interactive_theme -->
+# radioButtons("response_var_map", label = h3("Attack Characteristic:"),
+#     choices = list("New South Wales" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
 
 
-<!--   return(ggplotly(map)) -->
-
-<!-- }) -->
 
 
-<!-- ``` -->
+
+```
 
 
+Row {data-height=30}
+-----------------------------------------------------------------------
+This map is to better understand where certain types of attacks appear to occur. Click different attack characteristics to see where the type of attacks are occurring. Hover over different points to learn more about the attacks!
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+
+aus_shp <- sf::st_cast(aus_shp, "MULTIPOLYGON") #group_or_split = T
+shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
+
+
+
+renderPlotly({
+  shark_attacks_sf <- shark_attacks_sf %>%
+      mutate(!!sym(input$response_var_map) := factor(!!sym(input$response_var_map), 
+        levels = if (input$response_var_map == "Victim.injury") {
+          c("Fatal", "Injured", "Uninjured")
+        } else if (input$response_var_map == "Site.category") {
+          c("Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other")
+        } else if (input$response_var_map == "Provoked.unprovoked") {
+          c("Provoked", "Unprovoked")
+        } else if (input$response_var_map == "Victim.activity") {
+          c("Boarding", "Boating", "Diving", "Fishing", "Motorised Boating", "Other", "Snorkeling", "Spearfishing", "Standing in Water", "Swimming")
+        } else if (input$response_var_map == "Injury.severity") {
+          c("Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks")
+        } else if (input$response_var_map == "Victim.gender") {
+          c("Male", "Female")
+        } else {
+          NULL
+        }
+      ))
+  
+  map <- ggplot()+
+    geom_sf(data = aus_shp) +
+    labs(x = "", y = "", 
+         title = list(text = 
+                paste0("Location", ifelse(input$response_var_map == "Victim.injury", " of Victim Injury Type across Australia", ifelse(input$response_var_map == "Site.category", " of Shark Attack Site Categories Over Time", ifelse(input$response_var_map == "Provoked.unprovoked", " of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var_map == "Victim.activity", " of Victim Activities Over Time", ifelse(input$response_var_map == "Injury.severity", " of Injurity Severity Over Time", ifelse(input$response_var_map == "Victim.gender", " of Victim Genders Over Time", "")))))))),
+              fill = ifelse(input$response_var_map == "Victim.injury", "Victim Injuries", ifelse(input$response_var_map == "Site.category", "Site Categories", ifelse(input$response_var_map == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var_map == "Victim.activity", "Victim Activities", ifelse(input$response_var_map == "Injury.severity", "Injurity Severity", ifelse(input$response_var_map == "Victim.gender", "Victim Gender", ""))))))) +
+    geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
+    geom_sf(data = shark_attacks_sf, aes(fill = .data[[input$response_var_map]], text = paste0("Date: ", paste(Incident.month, Incident.year, sep = "/"),
+                      "<br>Location: ", Location,
+                      "<br>Victim Activity:" , Victim.activity,
+                      "<br>Injury Type: ", Victim.injury,
+                      "<br>Victim Gender: ", Victim.gender,
+                      "<br>Site Category: ", Site.category,
+                      "<br>Injury Severity: ", Injury.severity)),
+          size = 1.5) +
+        scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6b", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "#969696","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df8a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#a6cee3", "Female" = "#fb9a99", is.na = "black"),
+          labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
+      interactive_theme
+
+
+  return(ggplotly(map))
+
+})
+
+
+```
+
+Row {data-height=30}
+-----------------------------------------------------------------------
+Notice that 
 
 
 
