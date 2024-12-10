@@ -1012,6 +1012,7 @@ library(maps)
 # Loading in the Data and Packages
 
 shark_attacks <- read.csv("Australian Shark-Incident Database Public Version.csv")
+blurb_timeline <- read.csv("timeline blurb.csv")
 
 
 
@@ -1204,19 +1205,15 @@ shark_attacks_proportions_Injury.severity <- shark_attacks %>%  #Start with the 
 Row {data-height=100}
 -----------------------------------------------------------------------
 
-### Based on these results, it appears that...
 
-The number of attacks and the age of people being attacked is increasing over time! Although, fortunately, the proportion of fatal attacks over time is decreasing. 
+```{r}
+ renderTable({
+    blurb_timeline %>%
+    filter(name == input$response_var) %>% 
+    select(Takeaways)
 
-Unfortunately, unprovoked attacks seem to occur more than provoked attacks and both are increasing over time. 
-
-If you are male, good luck! Throughout time, every 50 years, over ~80% of attacks occur with male victims. 
-
-While fatalities and major lacerations in association with shark attacks are decreasing, minor lacerations are increasing in proportion. 
-
-As for location, most of the attacks over time have also occurred coastally, and the proportion of the coastal attacks is increasing over time while the proportion of the attacks further out to sea or inland are decreasing or stagnant. 
-
-As for activities, swimming appeared to be more dangerous in the past up until the 2000s when boarding became more risky. Snorkeling, spearfishing, and diving are also slightly risky activities but in recent decades, less than 30% of shark attacks are associated to these activities. It also should be noted that even standing the water can be dangerous, with over 1% of shark attacks being attributed to standing in water every 50 years since the early 1900s. 
+})
+```
 
 
 
