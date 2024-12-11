@@ -477,7 +477,7 @@ renderPlotly({
     geom_bar() +
     scale_fill_manual(values = c("Swimming" = "#a6cee3",
                                  "Boarding" = "#1f78b4",
-                                 "Spearfishing" = "#b2df8a",
+                                 "Spearfishing" = "#b2df4a",
                                  "Snorkeling" = "#33a02c",
                                  "Diving" = "#fb9a99",
                                  "Boating" = "#e31a1c",
@@ -1622,16 +1622,21 @@ renderPlotly({
           c("Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks")
         } else if (input$response_var == "Victim.gender") {
           c("Male", "Female")
+        } else if (input$response_var == "Total") {
+          c("Total")
         } else {
           NULL
         }
       ))
-    barchart_plot <- ggplot(dataframe_barchart_ordered,
-                            aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var)) +
-      geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
-      geom_point(aes(x = Year))+
-      #  geom_line(aes_string(x = "Year", y = ifelse(input$prop_count == "count", paste0("total_", input$response_var), NULL)), color = "black")+
-      # geom_point(aes(x = Year, y = ifelse(input$prop_count == "count", paste0("total_", input$response_var), NULL)), color = "black")+
+    barchart_plot <- ggplot(dataframe_barchart_ordered) +
+      geom_line(aes_string(x = "Year", y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, group = input$response_var, color = input$response_var))+
+      geom_point(aes_string(x = "Year", y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var))+
+
+      # ggplot(dataframe_barchart_ordered,
+      #                       aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var)) +
+      # geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
+      # geom_point(aes(x = Year))+
+      
          labs(x = "Years",
               y = ifelse(input$prop_count == "prop", "Proportion","Count"),
               title = list(text = paste0(paste0(paste0(ifelse(input$prop_count == "prop", "Proportion", "Count"),
@@ -1642,12 +1647,12 @@ renderPlotly({
               fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))),
               color = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", ""))))))) +
       scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6f", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "grey40","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df4a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#2b8cbe", "Female" = "#fb6f99"),
-           labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#2b8cbe", "Female" = "#fb6f99", "Total" = "black"),
+           labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female", "Total"))+
 
        scale_fill_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6b", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "grey40","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df4a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
-          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#2b8cbe", "Female" = "#fb6f99"),
-          labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
+          "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#2b8cbe", "Female" = "#fb6f99", "Total" = "black"),
+          labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female", "Total"))+
       interactive_theme +
       theme(legend.position = "bottom")
 
@@ -1663,6 +1668,29 @@ renderPlotly({
           geom_point(aes(x = Year))
 
   }
+    
+   # Include the total count line and tooltips
+    if (input$prop_count == "count") {
+      
+      dataframe_barchart_ordered$total_group <- "Total"
+      
+  barchart_plot <- barchart_plot +
+    geom_point(
+      data = dataframe_barchart_ordered,
+      aes(
+        x = Year,
+        y = !!sym(paste0("total_", input$response_var)),
+        text = paste0("Total Count: ", !!sym(paste0("total_", input$response_var))),
+        color = "Total", fill = "Total"
+      )) +
+    geom_line(
+      data = dataframe_barchart_ordered,
+      aes(
+        x = Year,
+        y = !!sym(paste0("total_", input$response_var)),
+        group = !!sym(input$response_var), color = "Total", fill = "Total"
+      ))
+}
 
 # Define tooltip based on the response variable
     tooltip_text <- ""
@@ -1701,7 +1729,7 @@ renderPlotly({
     lineplot_plot <- ggplot(data = dataframe_time(),
                             aes_string(x = "Incident.year", y = input$response_var)) +
         geom_point(alpha = 0.6, size = 0.8) +
-        geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3), figure = 'y~x', aes(text = tooltip_text_date)) +
+        geom_smooth(method = "loess", alpha = 0.2, color = alpha("#a50f15", 0.3), figure = 'y~x', aes(text = tooltip_text_date)) +
         labs(x = "Date",
              y = ifelse(input$response_var == "attack_count", "Number of Attacks", "Victim Age"),
              title = ifelse(input$response_var ==  "Victim.age", "Victim Age per Attack during Shark Attacks between 1800-2024", ifelse(input$response_var == "attack_count", "Number of Australian Shark Attacks per Year between 1800-2024", ""))) +
@@ -1729,53 +1757,14 @@ renderPlotly({
     lineplot_plot <- lineplot_plot + aes(text = tooltip_text_date) +
       geom_smooth(aes(text = NULL), method = "loess", alpha = 0.2, color = alpha("blue", 0.3), figure = 'y~x') 
 
-    
  
     
     return(ggplotly(lineplot_plot, tooltip = "text"))
     
 
-
-
   }
 
 
-
-  
-  # 
-  # else if (input$response_var %in% lineplot) {
-  # # Add a tooltip text column to the data
-  # dataframe_time_with_tooltip <- dataframe_time() %>%
-  #   mutate(
-  #     tooltip_text = ifelse(input$response_var == "Victim.age",
-  #                           paste0("<br>Victim Age: ", Victim.age, 
-  #                                  "<br>Year: ", Incident.year),
-  #                           ifelse(input$response_var == "attack_count", 
-  #                                  paste0("<br>Attack Count: ", attack_count, 
-  #                                         "<br>Year: ", Incident.year), 
-  #                                  NA))
-  #   )
-  # 
-  # # Create the plot with mapped tooltips
-  # lineplot_plot <- ggplot(data = dataframe_time_with_tooltip,
-  #                         aes_string(x = "Incident.year", y = input$response_var)) +
-  #   geom_point(alpha = 0.6, size = 0.8, aes(text = tooltip_text)) + # Map tooltip to points
-  #   geom_smooth(method = "loess", alpha = 0.2, formula = 'y ~ x', color = alpha("blue", 0.3)) + 
-  #   labs(x = "Date",
-  #        y = ifelse(input$response_var == "attack_count", "Number of Attacks", "Victim Age"),
-  #        title = ifelse(input$response_var == "Victim.age", 
-  #                       "Victim Age per Attack during Shark Attacks between 1800-2024", 
-  #                       ifelse(input$response_var == "attack_count", 
-  #                              "Number of Shark Attacks per Year between 1800-2024", ""))) +
-  #   scale_x_date(date_breaks = "10 years", 
-  #                date_labels = "%Y", 
-  #                limits = c(as.Date("1802-01-01"), as.Date("2024-01-01"))) +
-  #   theme(axis.text.x = element_text(angle = 45, vjust = 0.8)) +
-  #   interactive_theme
-  # 
-  # # Return the plotly object with tooltips enabled
-  # return(ggplotly(lineplot_plot, tooltip = "text"))
-  #   }
     
 })
 
