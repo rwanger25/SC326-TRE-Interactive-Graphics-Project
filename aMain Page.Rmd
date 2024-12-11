@@ -1659,7 +1659,7 @@ renderPlotly({
                                ymin = paste0("lower_", input$response_var),
                                ymax = paste0("upper_", input$response_var),
                                color =  input$response_var),
-                    position = position_dodge2(preserve = "single", padding = 0.9)) + # position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single")
+                    position = position_dodge(0.1)) + # position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single") preserve = "single", padding = 0.1
           geom_point(aes(x = Year))
 
   }
