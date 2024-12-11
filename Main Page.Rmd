@@ -52,6 +52,11 @@ library(ggseas) #to use stat_rollapplyr
 library(plotly)
 library(forcats)
 
+#loading in packages related to the maps
+library(stringr) #to use str functions
+library(sf)
+library(maps)
+
 interactive_theme <- theme_gray() +# White background, black and white theme
   theme(plot.title = element_text(family = "Georgia", face = "bold", color = "#0a144a"),
         axis.title = element_text(family = "DIN Alternate", color = "#0a144a"),
@@ -1311,10 +1316,6 @@ library(tidyr)
 library(ggseas) #to use stat_rollapplyr
 library(plotly)
 
-#loading in packages related to the maps
-library(stringr) #to use str functions
-library(sf)
-library(maps)
 
 # Loading in the Data and Packages
 
