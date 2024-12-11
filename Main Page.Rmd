@@ -82,7 +82,7 @@ fluidPage(
       p("Shark attacks, while rare, are a significant cause for concern for beachgoers, swimmers, and surfers along Australia's coast. In this application, we analyze various factors contributing to shark attacks in Australia, including locations, timing, and shark species. Our goal is to help visitors and locals alike understand the patterns behind shark attacks and make informed decisions about water safety."),
       p("Through this interactive dashboard, you'll be able to explore historical data on shark attacks, view trends, and identify activities where safety measures may be most needed. Whether you're a tourist or a local, this tool aims to promote awareness and enhance safety practices when enjoying Australia's beautiful coastlines."),
       p("We hope this resource helps you have a safer and more informed experience in Australia!"),
-      p("Click the buttons along the top bar to start exploring different graphs. Please be aware some graphs might take longer to render.")
+      p("Click the buttons along the top bar to start exploring different graphs.")
     )
   ),
   
@@ -90,8 +90,8 @@ fluidPage(
     column(6,
       style = "border: 2px solid #8db8fc; padding: 20px",
       h4("Data Source"),
-      p("The data used in this application is sourced from the publicly available Australian Shark-Incident Database (ASID) published by the Taronga Conservation Society Australia."),
-      p("The full dataset can be accessed here: https://taronga.org.au/conservation-and-science/australian-shark-incident-database#thedatabase")
+      p("The data used in this application is sourced from the publicly available Australian Shark-Incident Database (ASID) published by the Taronga Conservation Society Australia. It contains data from 1803 to 2024."),
+      p("The full dataset can be accessed here:", tags$a(href = "https://taronga.org.au/conservation-and-science/australian-shark-incident-database#thedatabase", "taronga.org.au")),
     ),
     column(6,
       style = "border: 2px solid #8db8fc; padding: 20px",
@@ -102,6 +102,21 @@ fluidPage(
         tags$li("Timothy Pratt"),
         tags$li("Rebecca Wanger"),
       )
+    )
+  ),
+  
+  fluidRow(
+    column(12,
+      style = "text-align: center; padding: 20px",
+      renderImage({
+        list(
+          src = file.path(paste("shark.jpg")),
+          contentType = "image/jpeg",
+          width = 350,
+          alt = "Illustration of a shark"
+        )
+      }),
+      p("Photo © studiogstock, Freepik")
     )
   )
 )
@@ -301,17 +316,22 @@ renderPlotly({
 What Activities Put You at the Highest Risk of Shark Attacks? {data-navmenu="Menu"}
 =====================================  
 
-Column {.sidebar}
+Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
 radioButtons("gender_button", label = "Select Gender", choices = c("All" = "all", "Female" = "female", "Male" = "male"))
-radioButtons("age_button", label = "Select Gender", choices = c("All" = "all", "0-10" = "0-10", "11-20" = "11-20", "21-30" = "21-30", "31-40" = "31-40", "41-50" = "41-50", "51-60" = "51-60", "61-70" = "61-70", "71-75" = "71-75"))
+radioButtons("age_button", label = "Select Age", choices = c("All" = "all", "0-10" = "0-10", "11-20" = "11-20", "21-30" = "21-30", "31-40" = "31-40", "41-50" = "41-50", "51-60" = "51-60", "61-70" = "61-70", "71-75" = "71-75"))
 ```
 
-Column
+Row {data-height=100}
 -----------------------------------------------------------------------
+### Takeaways
 
+This page contains a bar chart visualizing the number of recorded shark attacks per water activity. Use the buttons on the sidebar to explore trends for different genders and age groups. Regardless of gender and age, most shark attack victims were swimming or boarding (surfing, paddleboarding, etc.) at the time of the incident. Be sure to stay alert when engaging in either of those activities. On the other hand, the activities with the least amount of shark attacks are those where you are barely in the water, if at all. These activities include fishing, boating, and standing in water. Males from ages 11-20 make up a large amount of victims. So watch your teens, parents!
+
+Row 
+-----------------------------------------------------------------------
 ### What Activities Put You at the Highest Risk of Shark Attacks?
 
 ```{r}
@@ -343,68 +363,80 @@ renderPlotly({
   if(input$gender_button == "all")
     {
     sharks_act_filtered_v1 <- sharks_act
+    s1 <- ""
     }
   if(input$gender_button == "female")
     {
     sharks_act_filtered_v1 <- sharks_act %>%
       filter(Victim.gender == "female")
+    s1 <- "for Females"
     }
   if(input$gender_button == "male")
     {
     sharks_act_filtered_v1 <- sharks_act %>%
       filter(Victim.gender == "male")
+    s1 <- "for Males"
     }
   if(input$age_button == "all")
     {
     sharks_act_filtered <- sharks_act_filtered_v1
+    s2 <- ""
     }
   if(input$age_button == "0-10")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 0) %>%
       filter(Victim.age <= 10)
+    s2 <- "Ages 0-10"
     }
   if(input$age_button == "11-20")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 11) %>%
       filter(Victim.age <= 20)
+    s2 <- "Ages 11-20"
     }
   if(input$age_button == "21-30")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 21) %>%
       filter(Victim.age <= 30)
+    s2 <- "Ages 21-30"
     }
   if(input$age_button == "31-40")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 31) %>%
       filter(Victim.age <= 40)
+    s2 <- "Ages 31-40"
     }
   if(input$age_button == "41-50")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 41) %>%
       filter(Victim.age <= 50)
+    s2 <- "Ages 41-50"
     }
   if(input$age_button == "51-60")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 51) %>%
       filter(Victim.age <= 60)
+    s2 <- "Ages 51-60"
     }
   if(input$age_button == "61-70")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 61) %>%
       filter(Victim.age <= 70)
+    s2 <- "Ages 61-70"
     }
   if(input$age_button == "71-75")
     {
     sharks_act_filtered <- sharks_act_filtered_v1 %>%
       filter(Victim.age >= 71) %>%
       filter(Victim.age <= 75)
+    s2 <- "Ages 71-75"
     }
   
   p_act <- ggplot(sharks_act_filtered, aes(x = fct_infreq(Victim.activity), fill = Victim.activity, text = paste("Number of Attacks:", ..count..))) +
@@ -418,7 +450,7 @@ renderPlotly({
                                  "Standing in Water" = "#fdbf6f",
                                  "Fishing" = "#ff7f00",
                                  "Other" = "#cab2d6")) +
-    labs(x = "Activity", y = "Number of Shark Attacks") +
+    labs(title = paste("Number of Shark Attacks by Activity", s1, s2), x = "Activity", y = "Number of Shark Attacks") +
     interactive_theme +
     theme(legend.position = "none")
   
@@ -429,14 +461,20 @@ renderPlotly({
 When Should You Swim? {data-navmenu="Menu"}
 =====================================  
 
-Column {.sidebar}
+Sidebar {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
 radioButtons("time_button", label = "By Month or Time of Day?", choices = c("Month" = "month", "Time of Day" = "hour"))
 ```
 
-Column
+Row {data-height=100}
+-----------------------------------------------------------------------
+### Takeaways
+
+This page highlights the number of shark attacks recorded by month of the year, and time of the day. You can use the button on the sidebar to switch between graphs. As one may expect, more shark attacks occur at times when more people are swimming. This is true for months of the year, where December through February, which are summer months in the southern hemisphere, have the most recorded incidents. Additionally, more attacks occur during the day than at night, with a sharp decline after 5:00 pm. By comparing the blue total lines with the other lines representing 50-year blocks, it is clear that both of these trends have remained consistent over time. Perhaps instead of going for an afternoon swim during the crowded summer months, try enjoying a cool, beautiful fall sunset on the beach.
+
+Row
 -----------------------------------------------------------------------
 
 ### When Should You Swim?
@@ -481,6 +519,34 @@ sharks_time_hour <- merge(all_combos, sharks_time_hour, by = c("Time.of.incident
 
 sharks_time_hour$count_hour[is.na(sharks_time_hour$count_hour)] <- 0
 
+num_to_str <- c(
+  "1800" = "1800 - 1849",
+  "1850" = "1850 - 1899",
+  "1900" = "1900 - 1949",
+  "1950" = "1950 - 1999",
+  "2000" = "2000 - 2024"
+)
+
+sharks_time_month <- sharks_time_month %>%
+  mutate(Incident.year = as.character(num_to_str[as.character(Incident.year)]))
+
+total_month <- sharks_time_month %>%
+  group_by(Incident.month) %>%
+  summarise(count_month = sum(count_month)) %>%
+  mutate(Incident.year = "Total (1800 - 2024)")
+
+sharks_time_month <- rbind(sharks_time_month, total_month)
+
+sharks_time_hour <- sharks_time_hour %>%
+  mutate(Incident.year = as.character(num_to_str[as.character(Incident.year)]))
+
+total_hour <- sharks_time_hour %>%
+  group_by(Time.of.incident) %>%
+  summarise(count_hour = sum(count_hour)) %>%
+  mutate(Incident.year = "Total (1800 - 2024)")
+
+sharks_time_hour <- rbind(sharks_time_hour, total_hour)
+
 convert_to_time <- function(x) {
   time_str <- sprintf("%04d", x)
   time_obj <- strptime(time_str, format = "%H%M")
@@ -492,32 +558,34 @@ renderPlotly({
   if(input$time_button == "month")
     {
     p_time <- ggplot(sharks_time_month, aes(x = Incident.month, y = count_month, color = as.factor(Incident.year))) +
-      geom_point(aes(text = paste("Month:", Incident.month, "<br>Years:", Incident.year, "-", ifelse(Incident.year + 49 > 2024, 2024, Incident.year + 49), "<br>Number of Recorded Attacks:", count_month))) +
+      geom_point(aes(text = paste("Month:", Incident.month, "<br>Years:", Incident.year, "<br>Number of Recorded Attacks:", count_month))) +
       geom_line(aes(group = Incident.year)) + 
-      scale_color_manual(values = c("1800" = "#fcbba1",
-                                 "1850" = "#fc9272",
-                                 "1900" = "#fb6a4a",
-                                 "1950" = "#de2d26",
-                                 "2000" = "#a50f15")) +
-      labs(x = "Month", y = "Number of Shark Attacks", color = "Years") +
+      scale_color_manual(values = c("1800 - 1849" = "#fcbba1",
+                                 "1850 - 1899" = "#fc9272",
+                                 "1900 - 1949" = "#fb6a4a",
+                                 "1950 - 1999" = "#de2d26",
+                                 "2000 - 2024" = "#a50f15",
+                                 "Total (1800 - 2024)" = "#66c2ff")) +
+      labs(title = "Number of Shark Attacks by Month", x = "Month", y = "Number of Shark Attacks", color = "Years") +
       interactive_theme
     }
   else
     {
     p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour, color = as.factor(Incident.year))) +
-      geom_point(aes(text = paste("Time:", sapply(Time.of.incident, convert_to_time), "-", sapply(Time.of.incident + 59, convert_to_time), "<br>Years:", Incident.year, "-", ifelse(Incident.year + 49 > 2024, 2024, Incident.year + 49), "<br>Number of Recorded Attacks:", count_hour))) +
-      geom_line(aes(group = Incident.year)) + scale_x_continuous(breaks = seq(0, 2300, by = 200), labels = function(x) {
+      geom_point(aes(text = paste("Time:", sapply(Time.of.incident, convert_to_time), "<br>Years:", Incident.year))) +
+      geom_line(aes(group = Incident.year)) + scale_x_continuous(breaks = seq(0, 2300, by = 300), labels = function(x) {
       hour <- floor(x / 100)
       minute <- x %% 100
       time <- sprintf("%02d:%02d", hour, minute)
       format(strptime(time, "%H:%M"), "%I:%M %p")
       }
       ) + 
-      scale_color_manual(values = c("1850" = "#fc9272",
-                                 "1900" = "#fb6a4a",
-                                 "1950" = "#de2d26",
-                                 "2000" = "#a50f15")) +
-      labs(x = "Time of Day", y = "Number of Shark Attacks", color = "Years") +
+      scale_color_manual(values = c("1850 - 1899" = "#fc9272",
+                                 "1900 - 1949" = "#fb6a4a",
+                                 "1950 - 1999" = "#de2d26",
+                                 "2000 - 2024" = "#a50f15",
+                                 "Total (1800 - 2024)" = "#66c2ff")) +
+      labs(title = "Number of Shark Attacks by Time of Day", x = "Time of Day", y = "Number of Shark Attacks", color = "Years") +
       interactive_theme
     }
   ggplotly(p_time, tooltip = "text")
