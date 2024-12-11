@@ -277,7 +277,7 @@ radioButtons("response_var_map", label = h3("Attack Characteristic:"),
 
 Row {data-height=30}
 -----------------------------------------------------------------------
-Explore this map of shark attacks across Australia to better understand where certain types of attacks have occured, by selecting different attack characteristics and hovering over different points to learn more about the attacks!
+Explore this map of shark attacks across Australia to better understand where certain types of attacks have occurred and where attacks might be more common, by selecting different attack characteristics and hovering over different points to learn more about the attacks!
 
 Row {data-height=30}
 -----------------------------------------------------------------------
