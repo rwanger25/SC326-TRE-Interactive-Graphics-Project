@@ -582,7 +582,7 @@ renderPlotly({
   else
     {
     p_time <- ggplot(sharks_time_hour, aes(x = Time.of.incident, y = count_hour, color = as.factor(Incident.year))) +
-      geom_point(aes(text = paste("Time:", sapply(Time.of.incident, convert_to_time), "<br>Years:", Incident.year))) +
+      geom_point(aes(text = paste("Time:", sapply(Time.of.incident, convert_to_time), "-", sapply(Time.of.incident, convert_to_time), "<br>Years:", Incident.year, "<br>Number of Recorded Attacks:", count_hour))) +
       geom_line(aes(group = Incident.year)) + scale_x_continuous(breaks = seq(0, 2300, by = 300), labels = function(x) {
       hour <- floor(x / 100)
       minute <- x %% 100
