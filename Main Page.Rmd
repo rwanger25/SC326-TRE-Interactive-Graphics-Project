@@ -77,7 +77,7 @@ fluidPage(
       p("Shark attacks, while rare, are a significant cause for concern for beachgoers, swimmers, and surfers along Australia's coast. In this application, we analyze various factors contributing to shark attacks in Australia, including locations, timing, and shark species. Our goal is to help visitors and locals alike understand the patterns behind shark attacks and make informed decisions about water safety."),
       p("Through this interactive dashboard, you'll be able to explore historical data on shark attacks, view trends, and identify activities where safety measures may be most needed. Whether you're a tourist or a local, this tool aims to promote awareness and enhance safety practices when enjoying Australia's beautiful coastlines."),
       p("We hope this resource helps you have a safer and more informed experience in Australia!"),
-      p("Click the buttons along the top bar to start exploring different graphs.")
+      p("Click the buttons along the top bar to start exploring different graphs. Please be aware some graphs might take longer to render")
     )
   ),
   
