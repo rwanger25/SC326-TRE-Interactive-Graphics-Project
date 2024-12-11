@@ -116,9 +116,12 @@ fluidPage(
       h4("Data Source"),
       p("The data used in this application is sourced from the publicly available Australian Shark-Incident Database (ASID) published by the Taronga Conservation Society Australia. It contains data from 1803 to 2024."),
       p("The full dataset can be accessed here:", tags$a(href = "https://taronga.org.au/conservation-and-science/australian-shark-incident-database#thedatabase", "taronga.org.au")),
+    p("Australian state shapefiles (State and Territories 2021) were obtained from the Australian Bureau of Statistics: ",  tags$a(href = "https://www.abs.gov.au/statistics/standards/australian-statistical-geography-standard-asgs-edition-3/jul2021-jun2026/access-and-downloads/digital-boundary-files", "abs.gov.au")),
+    p("Body polygon shapefiles were obtained from Jose Fernandez's GitHub: ", tags$a(href = "https://github.com/josedv82/bdgramR?tab=MIT-2-ov-file", "github.com/josedv82")),
     ),
+    
     column(6,
-      style = "border: 2px solid #8db8fc; padding: 20px",
+      style = "border: 2px solid #8db8fc; padding: 50px",
       h4("Authors"),
       p("This application was developed by:"),
       tags$ul(
@@ -127,6 +130,7 @@ fluidPage(
         tags$li("Rebecca Wanger"),
       )
     )
+    
   ),
   
   fluidRow(
@@ -273,11 +277,13 @@ radioButtons("response_var_map", label = h3("Attack Characteristic:"),
 
 Row {data-height=30}
 -----------------------------------------------------------------------
-This map is to better understand where certain types of attacks appear to occur. Click different attack characteristics to see where the type of attacks are occurring. Hover over different points to learn more about the attacks!
+Explore this map of shark attacks across Australia to better understand where certain types of attacks have occured, by selecting different attack characteristics and hovering over different points to learn more about the attacks!
 
-Through looking at the maps, you can see that Queensland and New South Wales appear to have a much higher density of points along their coast. Queensland and Western Australia also appear to have the longest coasts, which might impact how many shark attacks occur in those states. There are not any apparent general trends of where certain attack characterics are across the country. 
+Row {data-height=30}
+-----------------------------------------------------------------------
+Through looking at the maps, you can see that Queensland and New South Wales appear to have a much higher density of points along their coast. Queensland and Western Australia also appear to have the longest coasts, which might impact how many shark attacks occur in those states. Respective state populations could also influence the number of attacks and the proportion of different attack characteristics occurring in each state. There are also certain areas with higher clustering of certain characteristics. For example, there are patches of Western Australian where the attacks occurred with women and patches where the attacks occurred with men. Further analysis could explore if apparent clustering is statistically significant.  
 
-Row
+Row {data-height=300}
 -----------------------------------------------------------------------
 
 ```{r}
@@ -336,8 +342,8 @@ renderPlotly({
 
 })
 
-
 ```
+
 
 
 
