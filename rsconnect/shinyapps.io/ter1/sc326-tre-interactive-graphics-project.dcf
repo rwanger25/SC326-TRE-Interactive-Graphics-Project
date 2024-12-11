@@ -5,6 +5,6 @@ account: ter1
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13460595
-bundleId: 9474236
+bundleId: 9503458
 url: https://ter1.shinyapps.io/sc326-tre-interactive-graphics-project/
 version: 1
