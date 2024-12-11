@@ -266,13 +266,6 @@ radioButtons("response_var_map", label = h3("Attack Characteristic:"),
    choices = list("Victim Age" = "Victim.age", "Provoked?" = "Provoked.unprovoked", "Victim Gender" = "Victim.gender",
                    "Victim Injury" = "Victim.injury", "Injury Severity" = "Injury.severity", "Site Category" = "Site.category", "Victim Activity" = "Victim.activity"), selected = "Victim.injury")
              
-   
-
-# radioButtons("response_var_map", label = h3("Attack Characteristic:"),
-#     choices = list("New South Wales" = "Victim.injury", "Site Category" = "Site.category", "Provoked?" = "Provoked.unprovoked", "Victim Activity" = "Victim.activity","Injury Severity" = "Injury.severity", "Victim Gender" = "Victim.gender"), selected = "Victim.injury")
-
-
-
 
 
 ```
@@ -281,6 +274,8 @@ radioButtons("response_var_map", label = h3("Attack Characteristic:"),
 Row {data-height=30}
 -----------------------------------------------------------------------
 This map is to better understand where certain types of attacks appear to occur. Click different attack characteristics to see where the type of attacks are occurring. Hover over different points to learn more about the attacks!
+
+Through looking at the maps, you can see that Queensland and New South Wales appear to have a much higher density of points along their coast. Queensland and Western Australia also appear to have the longest coasts, which might impact how many shark attacks occur in those states. There are not any apparent general trends of where certain attack characterics are across the country. 
 
 Row
 -----------------------------------------------------------------------
@@ -332,7 +327,6 @@ renderPlotly({
           labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other", "Unprovoked", "Provoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female"))+
       interactive_theme  +
     theme(panel.grid.major = element_line(colour = "transparent"),
-         # axis.text.x = element_blank(),
           axis.ticks = element_blank(),
          axis.text = element_blank())
   
@@ -506,7 +500,7 @@ Row {data-height=100}
 -----------------------------------------------------------------------
 ### Takeaways
 
-This page highlights the number of shark attacks recorded by month of the year, and time of the day. You can use the button on the sidebar to switch between graphs. As one may expect, more shark attacks occur at times when more people are swimming. This is true for months of the year, where December through February, which are summer months in the southern hemisphere, have the most recorded incidents. Additionally, more attacks occur during the day than at night, with a sharp decline after 5:00 pm. By comparing the blue total lines with the other lines representing 50-year blocks, it is clear that both of these trends have remained consistent over time. Perhaps instead of going for an afternoon swim during the crowded summer months, try enjoying a cool, beautiful fall sunset on the beach.
+This page highlights the number of shark attacks recorded by month of the year, and time of the day. You can use the button on the sidebar to switch between graphs. As one may expect, more shark attacks occur at times when more people are swimming. This is true for months of the year, where December through February, which are summer months in the southern hemisphere, have the most recorded incidents. Additionally, more attacks occur during the day than at night, with a sharp decline after 5:00 pm. By comparing the black total lines with the other lines representing 50-year blocks, it is clear that both of these trends have remained consistent over time. Perhaps instead of going for an afternoon swim during the crowded summer months, try enjoying a cool, beautiful fall sunset on the beach.
 
 Row
 -----------------------------------------------------------------------
@@ -599,7 +593,7 @@ renderPlotly({
                                  "1900 - 1949" = "#fb6a4a",
                                  "1950 - 1999" = "#de2d26",
                                  "2000 - 2024" = "#a50f15",
-                                 "Total (1800 - 2024)" = "#66c2ff")) +
+                                 "Total (1800 - 2024)" = "black")) +
       labs(title = "Number of Shark Attacks by Month", x = "Month", y = "Number of Shark Attacks", color = "Years") +
       interactive_theme
     }
@@ -618,7 +612,7 @@ renderPlotly({
                                  "1900 - 1949" = "#fb6a4a",
                                  "1950 - 1999" = "#de2d26",
                                  "2000 - 2024" = "#a50f15",
-                                 "Total (1800 - 2024)" = "#66c2ff")) +
+                                 "Total (1800 - 2024)" = "black")) +
       labs(title = "Number of Shark Attacks by Time of Day", x = "Time of Day", y = "Number of Shark Attacks", color = "Years") +
       interactive_theme
     }
@@ -1602,9 +1596,6 @@ lineplot <- c("Victim.age", "attack_count")
 barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.activity", "Injury.severity", "Victim.gender")
 
 
-# try changing the categories to x axis and time to color
-#jerzy prefer's the line and point graphs
-
 renderPlotly({
   if(input$response_var %in% barchart){
 
@@ -1628,14 +1619,13 @@ renderPlotly({
           NULL
         }
       ))
-    barchart_plot <- ggplot(dataframe_barchart_ordered) +
-      geom_line(aes_string(x = "Year", y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, group = input$response_var, color = input$response_var))+
-      geom_point(aes_string(x = "Year", y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var))+
-
-      # ggplot(dataframe_barchart_ordered,
-      #                       aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var)) +
-      # geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
-      # geom_point(aes(x = Year))+
+    
+    dataframe_barchart_ordered$total_group <- "Total"
+    
+    barchart_plot <- ggplot(dataframe_barchart_ordered,
+                            aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var)) +
+      geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
+      geom_point(aes(x = Year))+
       
          labs(x = "Years",
               y = ifelse(input$prop_count == "prop", "Proportion","Count"),
@@ -1644,8 +1634,8 @@ renderPlotly({
                                     '<sup>',
                                      '  Error Bars show 95% Confidence Intervals, Dates are by 50 Years except for 2000-2024','</sup>')),
                # subtitle = "Error Bars show 95% Confidence Interval\nDates are by 50 Years except for 2000-2024",
-              fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "")))))),
-              color = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", ""))))))) +
+                fill = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "Total")))))),
+              color = ifelse(input$response_var == "Victim.injury", "Victim Injuries", ifelse(input$response_var == "Site.category", "Site Categories", ifelse(input$response_var == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var == "Victim.activity", "Victim Activities", ifelse(input$response_var == "Injury.severity", "Injurity Severity", ifelse(input$response_var == "Victim.gender", "Victim Gender", "Total"))))))) +
       scale_color_manual(values = c("Fatal" = "#a50f15", "Injured" = "#ef3b2c", "Uninjured" = "#fcbba1", "Ocean/Pelagic" = "#343d6f", "Island Open Ocean" = "#045a8d", "Estuary/Harbour" = "#2b8cbe", "Coastal" = "#74a9cf",  "River" = "#a6bddb", "Other" = "grey40","Provoked" = "#8c3a40", "Unprovoked" = "#343d6b", "Swimming" = "#a6cee3", "Boarding" = "#1f78b4", "Spearfishing" = "#b2df4a", "Snorkeling" = "#33a02c", "Diving" = "#fb9a99", "Boating" = "#e31a1c", "Standing in Water" = "#fdbf6f", "Fishing" = "#ff7f00", "Other" = "#cab2d6",
           "Major Lacerations" = "#a50f15", "Minor Lacerations" = "#de2d26", "Punctures" = "#fb6a4a" , "Surface Wound" = "#fc9272", "Abrasion" = "#fcbba1", "Other: Teeth Marks" = "#fee5d9", "Male" = "#2b8cbe", "Female" = "#fb6f99", "Total" = "black"),
            labels = c("Fatal", "Injured", "Uninjured", "Ocean/Pelagic", "Island Open Ocean", "Estuary/Harbour", "Coastal", "River", "Other","Provoked", "Unprovoked", "Swimming", "Boarding", "Spearfishing", "Snorkeling", "Diving", "Boating", "Standing in Water", "Fishing", "Other", "Major Lacerations", "Minor Lacerations", "Punctures", "Surface Wound", "Abrasion", "Other: Teeth Marks", "Male", "Female", "Total"))+
@@ -1671,25 +1661,22 @@ renderPlotly({
     
    # Include the total count line and tooltips
     if (input$prop_count == "count") {
-      
-      dataframe_barchart_ordered$total_group <- "Total"
+    
       
   barchart_plot <- barchart_plot +
+     geom_line(
+      data = dataframe_barchart_ordered,
+      aes(
+        x = Year,
+        y = !!sym(paste0("total_", input$response_var)),
+        group = "Total", color = "Total", fill = "Total")) +
     geom_point(
       data = dataframe_barchart_ordered,
-      aes(
-        x = Year,
-        y = !!sym(paste0("total_", input$response_var)),
-        text = paste0("Total Count: ", !!sym(paste0("total_", input$response_var))),
-        color = "Total", fill = "Total"
-      )) +
-    geom_line(
-      data = dataframe_barchart_ordered,
-      aes(
-        x = Year,
-        y = !!sym(paste0("total_", input$response_var)),
-        group = !!sym(input$response_var), color = "Total", fill = "Total"
-      ))
+      aes(x = Year,
+          y = !!sym(paste0("total_", input$response_var)),
+         text = paste0("Total Count: ", !!sym(paste0("total_", input$response_var))),
+          color = "Total", fill = "Total", group = "Total")) 
+
 }
 
 # Define tooltip based on the response variable
