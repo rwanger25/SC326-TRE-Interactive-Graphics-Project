@@ -40,21 +40,6 @@ resource_files:
 ---
 
 ```{r}
-## Connecting to the Shiny App Account
-# rsconnect::setAccountInfo(name='ter1',
-# 			  token='0163EF6118B243DE8D0042631C039930',
-# 			  secret='<Secret>')
-
-## Actually running and deploying the app
-
-library(shiny)
-library(ggplot2)
-#runApp()
-
-#deploying the app
-
-library(rsconnect)
-#deployApp()
 
 #link: https://ter1.shinyapps.io/sc326-tre-interactive-graphics-project/
 ```
@@ -635,7 +620,7 @@ library(flexdashboard)
 library(plotly)
 library(stringr)
 library(devtools)
-# library(bdgramR)
+library(bdgramR)
 
 shark <- read.csv("Australian Shark-Incident Database Public Version.csv")
 
@@ -824,129 +809,129 @@ body_bar
 ### Which Body Part is Most Likely to Get Injured?
 
 ```{r}
-# renderPlot({
-# 
-#  body_polygon <- bdgramr(data = data, model = "basic_male")
-# 
-#   body_injury <- shark %>%
-#     mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
-#            body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
-#            body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
-#            body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4],
-#            age_range = case_when(Victim.age <= 10 ~ "0-10",
-#                                  (10 < Victim.age) & (Victim.age <= 20)  ~ "11-20",
-#                                  (20 < Victim.age) & (Victim.age <= 30)  ~ "21-30",
-#                                  (30 < Victim.age) & (Victim.age <= 40)  ~ "31-40",
-#                                  (40 < Victim.age) & (Victim.age <= 50)  ~ "41-50",
-#                                  (50 < Victim.age) & (Victim.age <= 60)  ~ "51-60",
-#                                  (60 < Victim.age) & (Victim.age <= 70)  ~ "61-70",
-#                                  (70 < Victim.age) & (Victim.age <= 75)  ~ "71-75",
-#                                  Victim.age == " "                ~ NA))
-# 
-#   if (input$gender_EL == "all") { #if it's all genders
-# 
-#   } else { #if it's a specific gender
-#     body_injury <- body_injury %>%
-#       filter(Victim.gender == input$gender_EL)
-#   }
-# 
-#   body_1 <- body_injury %>%
-#     group_by(body_1, age_range) %>%
-#     rename(body = body_1) %>%
-#     filter(body != "") %>%
-#     summarize(sum = n())
-# 
-#   body_2 <- body_injury %>%
-#     group_by(body_2, age_range) %>%
-#     rename(body = body_2) %>%
-#     filter(body != "") %>%
-#     summarize(sum = n())
-# 
-#   body_3 <- body_injury %>%
-#     group_by(body_3, age_range) %>%
-#     rename(body = body_3) %>%
-#     filter(body != "") %>%
-#     summarize(sum = n())
-# 
-#   body_4 <- body_injury %>%
-#     group_by(body_4, age_range) %>%
-#     rename(body = body_4) %>%
-#     filter(body != "") %>%
-#     summarize(sum = n())
-# 
-#   body_12 <- rbind(body_1, body_2)
-#   body_123 <- rbind(body_12, body_3)
-#   body_1234 <- rbind(body_123, body_4)
-# 
-#   body_total <- body_1234 %>%
-#     group_by(body, age_range) %>%
-#     mutate(body = ifelse(body == "left leg", "leg", body),
-#            body = ifelse(body == "left foot", "foot", body)) %>%
-#     mutate(overall = case_when(body == "ankle" ~ "Foot",
-#                                body == "calf" ~ "Leg",
-#                                body == "hand" ~ "Arm",
-#                                body == "leg" ~ "Leg",
-#                                body == "other: half of body recovered" ~ "",
-#                                body == "other: uninjured" ~ "",
-#                                body == "right" ~ "",
-#                                body == "shoulder " ~ "Shoulder",
-#                                body == "torso" ~ "Torso",
-#                                body == "arm" ~ "Arm",
-#                                body == "foot" ~ "Foot",
-#                                body == "head" ~ "Head",
-#                                body == "other: body not recovered" ~ "",
-#                                body == "other: multiple bites" ~ "",
-#                                body == "pelvic region" ~ "Pelvic region",
-#                                body == "shoulder" ~ "Shoulder",
-#                                body == "thigh" ~ "Leg"),
-#            body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>%
-#     filter(overall != "" ) %>%
-#     group_by(overall, age_range) %>%
-#     summarize(Number_injury = sum(sum)) %>%
-#     na.omit() %>%
-#     filter(age_range == input$age_EL)
-# 
-# 
-#   body_polygon <- bdgramr(data = data, model = "basic_male") %>%
-#     mutate(body = case_when(Muscle == "Head" ~ "Head",
-#                             Muscle == "Pectoral" ~ "Shoulder",
-#                             Muscle == "Intercostal" ~ "Torso",
-#                             Muscle == "Abdominal" ~ "Pelvic region",
-#                             Muscle == "Quadriceps" ~ "Leg",
-#                             Muscle == "Foot" ~ "Foot",
-#                             Muscle == "Shoulder" ~ "Shoulder",
-#                             Muscle == "Lower_back" ~ "Torso",
-#                             Muscle == "Hamstring" ~ "Leg",
-#                             Muscle == "Clavicle" ~ "Neck",
-#                             Muscle == "Arm" ~ "Arm",
-#                             Muscle == "Forearm" ~ "Arm",
-#                             Muscle == "Hand" ~ "Hand",
-#                             Muscle == "Shin" ~ "Leg",
-#                             Muscle == "Neck" ~ "Neck",
-#                             Muscle == "Upper_Back" ~ "Torso",
-#                             Muscle == "Gluteus_Maximus" ~ "Pelvic region",
-#                             Muscle == "Calf" ~ "Leg"))
-# 
-#   body_combine <- full_join(body_polygon, body_total, by = c("body" = "overall"), relationship = "many-to-one")
-# 
-# 
-# ggplot(data = body_combine, aes(x,y, group = Id)) +
-#   geom_bdgramr(color = "#67000d", aes(fill = Number_injury)) +
-#   scale_fill_gradient(low = "#fff5f0", high = "#a50f15" ) +
-#   labs(title = paste("Which body part was most injured at age", input$age_EL, "?"),
-#        caption = "BdygramR: original_male diagram",
-#        fill = "Number of Injuries") +
-#   interactive_theme +
-#   theme(axis.line=element_blank(),
-#       axis.text.x=element_blank(),
-#       axis.text.y=element_blank(),
-#       axis.ticks=element_blank(),
-#       axis.title.x=element_blank(),
-#       axis.title.y=element_blank(),
-#       panel.grid.major=element_blank(),
-#       panel.grid.minor=element_blank())
-# 
-# })
+renderPlot({
+
+ body_polygon <- bdgramr(data = data, model = "basic_male")
+
+  body_injury <- shark %>%
+    mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
+           body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
+           body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
+           body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4],
+           age_range = case_when(Victim.age <= 10 ~ "0-10",
+                                 (10 < Victim.age) & (Victim.age <= 20)  ~ "11-20",
+                                 (20 < Victim.age) & (Victim.age <= 30)  ~ "21-30",
+                                 (30 < Victim.age) & (Victim.age <= 40)  ~ "31-40",
+                                 (40 < Victim.age) & (Victim.age <= 50)  ~ "41-50",
+                                 (50 < Victim.age) & (Victim.age <= 60)  ~ "51-60",
+                                 (60 < Victim.age) & (Victim.age <= 70)  ~ "61-70",
+                                 (70 < Victim.age) & (Victim.age <= 75)  ~ "71-75",
+                                 Victim.age == " "                ~ NA))
+
+  if (input$gender_EL == "all") { #if it's all genders
+
+  } else { #if it's a specific gender
+    body_injury <- body_injury %>%
+      filter(Victim.gender == input$gender_EL)
+  }
+
+  body_1 <- body_injury %>%
+    group_by(body_1, age_range) %>%
+    rename(body = body_1) %>%
+    filter(body != "") %>%
+    summarize(sum = n())
+
+  body_2 <- body_injury %>%
+    group_by(body_2, age_range) %>%
+    rename(body = body_2) %>%
+    filter(body != "") %>%
+    summarize(sum = n())
+
+  body_3 <- body_injury %>%
+    group_by(body_3, age_range) %>%
+    rename(body = body_3) %>%
+    filter(body != "") %>%
+    summarize(sum = n())
+
+  body_4 <- body_injury %>%
+    group_by(body_4, age_range) %>%
+    rename(body = body_4) %>%
+    filter(body != "") %>%
+    summarize(sum = n())
+
+  body_12 <- rbind(body_1, body_2)
+  body_123 <- rbind(body_12, body_3)
+  body_1234 <- rbind(body_123, body_4)
+
+  body_total <- body_1234 %>%
+    group_by(body, age_range) %>%
+    mutate(body = ifelse(body == "left leg", "leg", body),
+           body = ifelse(body == "left foot", "foot", body)) %>%
+    mutate(overall = case_when(body == "ankle" ~ "Foot",
+                               body == "calf" ~ "Leg",
+                               body == "hand" ~ "Arm",
+                               body == "leg" ~ "Leg",
+                               body == "other: half of body recovered" ~ "",
+                               body == "other: uninjured" ~ "",
+                               body == "right" ~ "",
+                               body == "shoulder " ~ "Shoulder",
+                               body == "torso" ~ "Torso",
+                               body == "arm" ~ "Arm",
+                               body == "foot" ~ "Foot",
+                               body == "head" ~ "Head",
+                               body == "other: body not recovered" ~ "",
+                               body == "other: multiple bites" ~ "",
+                               body == "pelvic region" ~ "Pelvic region",
+                               body == "shoulder" ~ "Shoulder",
+                               body == "thigh" ~ "Leg"),
+           body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>%
+    filter(overall != "" ) %>%
+    group_by(overall, age_range) %>%
+    summarize(Number_injury = sum(sum)) %>%
+    na.omit() %>%
+    filter(age_range == input$age_EL)
+
+
+  body_polygon <- bdgramr(data = data, model = "basic_male") %>%
+    mutate(body = case_when(Muscle == "Head" ~ "Head",
+                            Muscle == "Pectoral" ~ "Shoulder",
+                            Muscle == "Intercostal" ~ "Torso",
+                            Muscle == "Abdominal" ~ "Pelvic region",
+                            Muscle == "Quadriceps" ~ "Leg",
+                            Muscle == "Foot" ~ "Foot",
+                            Muscle == "Shoulder" ~ "Shoulder",
+                            Muscle == "Lower_back" ~ "Torso",
+                            Muscle == "Hamstring" ~ "Leg",
+                            Muscle == "Clavicle" ~ "Neck",
+                            Muscle == "Arm" ~ "Arm",
+                            Muscle == "Forearm" ~ "Arm",
+                            Muscle == "Hand" ~ "Hand",
+                            Muscle == "Shin" ~ "Leg",
+                            Muscle == "Neck" ~ "Neck",
+                            Muscle == "Upper_Back" ~ "Torso",
+                            Muscle == "Gluteus_Maximus" ~ "Pelvic region",
+                            Muscle == "Calf" ~ "Leg"))
+
+  body_combine <- full_join(body_polygon, body_total, by = c("body" = "overall"), relationship = "many-to-one")
+
+
+ggplot(data = body_combine, aes(x,y, group = Id)) +
+  geom_bdgramr(color = "#67000d", aes(fill = Number_injury)) +
+  scale_fill_gradient(low = "#fff5f0", high = "#a50f15" ) +
+  labs(title = paste("Which body part was most injured at age", input$age_EL, "?"),
+       caption = "BdygramR: original_male diagram",
+       fill = "Number of Injuries") +
+  interactive_theme +
+  theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title.x=element_blank(),
+      axis.title.y=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank())
+
+})
 ```
 
 
