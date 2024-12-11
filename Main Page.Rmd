@@ -281,7 +281,7 @@ Explore this map of shark attacks across Australia to better understand where ce
 
 Row {data-height=30}
 -----------------------------------------------------------------------
-Through looking at the maps, you can see that Queensland and New South Wales appear to have a much higher density of points along their coast. Queensland and Western Australia also appear to have the longest coasts, which might impact how many shark attacks occur in those states. Respective state populations could also influence the number of attacks and the proportion of different attack characteristics occurring in each state. There are also certain areas with higher clustering of certain characteristics. For example, there are patches of Western Australian where the attacks occurred with women and patches where the attacks occurred with men. Further analysis could explore if apparent clustering is statistically significant.  
+Through looking at the maps, you can see that Queensland and New South Wales appear to have a much higher density of points along their coast. Queensland and Western Australia also appear to have the longest coasts, which might impact how many shark attacks occur in those states. Respective state populations could also influence the number of attacks and the proportion of different attack characteristics occurring in each state. There are also certain areas with higher clustering of certain characteristics.
 
 Row {data-height=300}
 -----------------------------------------------------------------------
@@ -1560,6 +1560,7 @@ shark_attacks_proportions_Injury.severity <- shark_attacks_fixed %>%  #Start wit
 ```
 
 
+
 Row {data-height=100}
 -----------------------------------------------------------------------
 
@@ -1771,8 +1772,7 @@ renderPlotly({
 
 Column {.sidebar}
 -----------------------------------------------------------------------
-
-
+This page shows time series and line and dot plots showing how the proportion and counts of different attack characteristics have changed over time (1800-2024). 
 
 ```{r}
 
