@@ -111,7 +111,7 @@ Where are Shark Attacks Occurring? {data-navmenu="Menu"}
 
 # cleaning the data
 
-#adding in means, renaming and recategorizing, 
+#adding in means, renaming and recategorizing,
 shark_attacks_fixed <- shark_attacks %>%
   filter(is.na(UIN) != T) %>% #removing the empty rows
   mutate(Victim.injury = case_when(Victim.injury == "fatal" ~ "Fatal",
@@ -125,8 +125,8 @@ shark_attacks_fixed <- shark_attacks %>%
   mutate(Injury.severity = case_when(Injury.severity == "abrasion" ~ "Abrasion", Injury.severity == "major lacerations" ~ "Major Lacerations", Injury.severity == "minor lacerations" ~ "Minor Lacerations", Injury.severity == "other: teeth marks" ~ "Other: Teeth Marks", Injury.severity == "punctures" ~ "Punctures", Injury.severity == "surface wound" ~ "Surface Wound")) %>%
   mutate(Site.category = case_when(Site.category == "coastal" ~ "Coastal",
                                    Site.category == "Coastal" ~ "Coastal",
-                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour", 
-                                   Site.category == "island open ocean" ~ "Island Open Ocean", 
+                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour",
+                                   Site.category == "island open ocean" ~ "Island Open Ocean",
                                    Site.category == "ocean/pelagic" ~ "Ocean/Pelagic",
                                    Site.category == "other: fish farm" ~ "Other",
                                    Site.category == "river" ~ "River",
@@ -143,7 +143,7 @@ shark_attacks_fixed <- shark_attacks %>%
                                    Victim.activity == "other: jetskiing; swimming" ~ "Other",
                                    Victim.activity == "other:floating" ~ "Swimming",
                                    Victim.activity == "wing foiler" ~ "Other",
-                                   Victim.activity == "snorkeling" ~ "Snorkeling", 
+                                   Victim.activity == "snorkeling" ~ "Snorkeling",
                                    Victim.activity == "surfing" ~ "Boarding",
                                    Victim.activity == "snorkelling" ~ "Snorkeling",
                                    Victim.activity == "spearfishing" ~ "Spearfishing",
@@ -151,17 +151,17 @@ shark_attacks_fixed <- shark_attacks %>%
                                    Victim.activity == "swimming" ~ "Swimming",
                                    Victim.activity == "unmotorised boating" ~ "Boating",
                                    Victim.activity == "" ~ NA)) %>%
-  
+
   filter(Incident.year != "1791") %>%
   group_by(Incident.year) %>%
    #creating mean columns
   mutate(Victim.age.mean = mean(Victim.age)) %>%
   #creating date groupings
-  mutate(Year = case_when((Incident.year > 1800 & Incident.year <= 1850) ~ "1800-1850", 
+  mutate(Year = case_when((Incident.year > 1800 & Incident.year <= 1850) ~ "1800-1850",
                           (Incident.year > 1850 & Incident.year <= 1900) ~ "1850-1900",
                           (Incident.year > 1900 & Incident.year <= 1950) ~ "1900-1950",
                           (Incident.year > 1950 & Incident.year <= 2000) ~ "1950-2000",
-                          (Incident.year > 2000 & Incident.year <= 2024) ~ "2000-2024")) 
+                          (Incident.year > 2000 & Incident.year <= 2024) ~ "2000-2024"))
 
 
 ```
@@ -246,7 +246,7 @@ shark_attacks_sf <- sf::st_cast(shark_attacks_sf, "MULTIPOINT")
 
 renderPlotly({
   shark_attacks_sf <- shark_attacks_sf %>%
-      mutate(!!sym(input$response_var_map) := factor(!!sym(input$response_var_map), 
+      mutate(!!sym(input$response_var_map) := factor(!!sym(input$response_var_map),
         levels = if (input$response_var_map == "Victim.injury") {
           c("Fatal", "Injured", "Uninjured")
         } else if (input$response_var_map == "Site.category") {
@@ -263,11 +263,11 @@ renderPlotly({
           NULL
         }
       ))
-  
+
   map <- ggplot()+
     geom_sf(data = aus_shp) +
-    labs(x = "", y = "", 
-         title = list(text = 
+    labs(x = "", y = "",
+         title = list(text =
                 paste0("Location", ifelse(input$response_var_map == "Victim.injury", " of Victim Injury Type across Australia", ifelse(input$response_var_map == "Site.category", " of Shark Attack Site Categories Over Time", ifelse(input$response_var_map == "Provoked.unprovoked", " of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var_map == "Victim.activity", " of Victim Activities Over Time", ifelse(input$response_var_map == "Injury.severity", " of Injurity Severity Over Time", ifelse(input$response_var_map == "Victim.gender", " of Victim Genders Over Time", "")))))))),
               fill = ifelse(input$response_var_map == "Victim.injury", "Victim Injuries", ifelse(input$response_var_map == "Site.category", "Site Categories", ifelse(input$response_var_map == "Provoked.unprovoked", "Provoked?", ifelse(input$response_var_map == "Victim.activity", "Victim Activities", ifelse(input$response_var_map == "Injury.severity", "Injurity Severity", ifelse(input$response_var_map == "Victim.gender", "Victim Gender", ""))))))) +
     geom_sf_text(data = aus_shp, aes(label = STE_NAME21), color = "black", size = 2, check_overlap = T) +
@@ -520,7 +520,7 @@ renderPlotly({
 ```
 
 Which Body Part are You Most Likely to Injure? {data-navmenu="Menu"}
-=====================================  
+=====================================
 
 ```{r global_body, include=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -538,12 +538,12 @@ Column {.sidebar}
 -----------------------------------------------------------------------
 
 ```{r}
-selectInput("gender_EL", label = "Select a gender", 
+selectInput("gender_EL", label = "Select a gender",
             choices =  c("All" = "all",
                          "Male" = "male",
                          "Female" = "female"))
 
-selectInput("age_EL", label = "Select an age range", 
+selectInput("age_EL", label = "Select an age range",
             choices =  c("0-10" = "0-10",
                          "11-20" = "11-20",
                          "21-30" = "21-30",
@@ -567,19 +567,19 @@ Row {data-height=130}
 ### Helpful Advice for Your Trip
 During your Australia trip, we would love for you to be as safe as possible. On this page we visualized some data representing where people have been injured in the past due to shark attacks so you can watch out for said body part depending on gender and age range. In general, people between the age 10 and 40 were injured most on their legs, and people between the ages 41 to 60 were injured most on their arms. People seem to also get injured the most on their legs regardless of what gender they were. Keeps those legs close to you!
 
-Row 
+Row
 -----------------------------------------------------------------------
 ### Body Part Injuries by Age Range
 
 ```{r}
 renderPlot({
-  
+
 body_injury <- shark %>%
   mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
          body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
          body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
          body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4],
-         age_range = case_when(Victim.age <= 10 ~ "0-10", 
+         age_range = case_when(Victim.age <= 10 ~ "0-10",
                               (10 < Victim.age) & (Victim.age <= 20)  ~ "11-20",
                               (20 < Victim.age) & (Victim.age <= 30)  ~ "21-30",
                               (30 < Victim.age) & (Victim.age <= 40)  ~ "31-40",
@@ -587,46 +587,46 @@ body_injury <- shark %>%
                               (50 < Victim.age) & (Victim.age <= 60)  ~ "51-60",
                               (60 < Victim.age) & (Victim.age <= 70)  ~ "61-70",
                               (70 < Victim.age) & (Victim.age <= 75)  ~ "71-75",
-                              Victim.age == " "                ~ NA)) 
+                              Victim.age == " "                ~ NA))
 if (input$gender_EL == "all") { #if it's all genders
-  
+
 } else { #if it's a specific gender
-  body_injury <- body_injury %>% 
+  body_injury <- body_injury %>%
     filter(Victim.gender == input$gender_EL)
 }
 
-body_1 <- body_injury %>% 
-  group_by(body_1, age_range) %>% 
-  rename(body = body_1) %>% 
-  filter(body != "") %>% 
+body_1 <- body_injury %>%
+  group_by(body_1, age_range) %>%
+  rename(body = body_1) %>%
+  filter(body != "") %>%
   summarize(sum = n())
 
-body_2 <- body_injury %>% 
-  group_by(body_2, age_range) %>% 
-  rename(body = body_2) %>% 
-  filter(body != "") %>% 
+body_2 <- body_injury %>%
+  group_by(body_2, age_range) %>%
+  rename(body = body_2) %>%
+  filter(body != "") %>%
   summarize(sum = n())
 
-body_3 <- body_injury %>% 
-  group_by(body_3, age_range) %>% 
-  rename(body = body_3) %>% 
-  filter(body != "") %>% 
+body_3 <- body_injury %>%
+  group_by(body_3, age_range) %>%
+  rename(body = body_3) %>%
+  filter(body != "") %>%
   summarize(sum = n())
 
-body_4 <- body_injury %>% 
-  group_by(body_4, age_range) %>% 
-  rename(body = body_4) %>% 
-  filter(body != "") %>% 
+body_4 <- body_injury %>%
+  group_by(body_4, age_range) %>%
+  rename(body = body_4) %>%
+  filter(body != "") %>%
   summarize(sum = n())
 
 body_12 <- rbind(body_1, body_2)
 body_123 <- rbind(body_12, body_3)
 body_1234 <- rbind(body_123, body_4)
 
-body_total <- body_1234 %>% 
+body_total <- body_1234 %>%
   group_by(body, age_range) %>%
   mutate(body = ifelse(body == "left leg", "leg", body),
-         body = ifelse(body == "left foot", "foot", body)) %>% 
+         body = ifelse(body == "left foot", "foot", body)) %>%
   mutate(overall = case_when(body == "ankle" ~ "Foot",
                              body == "calf" ~ "Leg",
                              body == "hand" ~ "Arm",
@@ -644,14 +644,14 @@ body_total <- body_1234 %>%
                              body == "pelvic region" ~ "Pelvic region",
                              body == "shoulder" ~ "Shoulder",
                              body == "thigh" ~ "Leg"),
-         body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>% 
-  filter(overall != "" ) %>% 
-  group_by(overall, age_range) %>% 
-  summarize(Number_injury = sum(sum)) %>% 
+         body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>%
+  filter(overall != "" ) %>%
+  group_by(overall, age_range) %>%
+  summarize(Number_injury = sum(sum)) %>%
   na.omit()
 
-final_body_bar <- body_total %>% 
-    group_by(age_range) %>% 
+final_body_bar <- body_total %>%
+    group_by(age_range) %>%
   filter(Number_injury == max(Number_injury))
 
 final_body_bar$age_range <- factor(final_body_bar$age_range, levels = c("0-10", "11-20", "21-30", "31-40", "41-50", "51-60", "61-70", "71-75"))
@@ -662,11 +662,11 @@ body_bar <- ggplot(final_body_bar, aes(x = age_range, y = Number_injury, fill = 
        y = "Number of Injuries for this Body Part",
        title = "Which Body Part was Most Injured by Age Ranges?",
        fill = "Number of Injuries") +
-  scale_fill_manual(values = c("#44AA99", "#CC6677", "#493C86", "#DDCC77")) 
+  scale_fill_manual(values = c("#44AA99", "#CC6677", "#493C86", "#DDCC77"))
 if (input$bar_EL == "all") { #if it's all barchart
-    
- specific_age <- final_body_bar %>% 
-  filter(age_range == case_when(input$age_EL <= 10 ~ "0-10", 
+
+ specific_age <- final_body_bar %>%
+  filter(age_range == case_when(input$age_EL <= 10 ~ "0-10",
                               (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
                               (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
                               (30 < input$age_EL) & (input$age_EL <= 40)  ~ "31-40",
@@ -675,15 +675,15 @@ if (input$bar_EL == "all") { #if it's all barchart
                               (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
                               (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75"))
 
-body_bar + geom_col(data = specific_age, color = "#a50f15", size = 1.5) + 
+body_bar + geom_col(data = specific_age, color = "#a50f15", size = 1.5) +
   guides(color = "none") +
   interactive_theme
-  
+
 } else { #if it's a specific age barchart
 
-body_total_age <- body_total %>% 
-  group_by(overall) %>% 
-  filter(age_range == case_when(input$age_EL <= 10 ~ "0-10", 
+body_total_age <- body_total %>%
+  group_by(overall) %>%
+  filter(age_range == case_when(input$age_EL <= 10 ~ "0-10",
                                (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
                                (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
                                (30 < input$age_EL) & (input$age_EL <= 40)  ~ "31-40",
@@ -697,7 +697,7 @@ body_bar <- ggplot(body_total_age, aes(x = reorder(overall, Number_injury), y = 
   scale_fill_gradient(low = "#fff5f0", high = "#a50f15" ) +
   labs(x = "Body Part Injured",
        y = "Number of Injuries for this Body Part",
-       title = paste("Which Body Part was Most Injured in Ages", case_when(input$age_EL <= 10 ~ "0-10", 
+       title = paste("Which Body Part was Most Injured in Ages", case_when(input$age_EL <= 10 ~ "0-10",
                                (10 < input$age_EL) & (input$age_EL <= 20)  ~ "11-20",
                                (20 < input$age_EL) & (input$age_EL <= 30)  ~ "21-30",
                                (30 < input$age_EL) & (input$age_EL <= 40)  ~ "31-40",
@@ -706,7 +706,7 @@ body_bar <- ggplot(body_total_age, aes(x = reorder(overall, Number_injury), y = 
                                (60 < input$age_EL) & (input$age_EL <= 70)  ~ "61-70",
                                (70 < input$age_EL) & (input$age_EL <= 75)  ~ "71-75")),
        fill = "Number of Injuries") +
-  interactive_theme 
+  interactive_theme
 
 body_bar
 }
@@ -718,15 +718,15 @@ body_bar
 
 ```{r}
 renderPlot({
-  
- body_polygon <- bdgramr(data = data, model = "basic_male") 
-  
+
+ body_polygon <- bdgramr(data = data, model = "basic_male")
+
   body_injury <- shark %>%
     mutate(body_1 = str_split_fixed(Injury.location, ", ", 4)[ ,1],
            body_2 = str_split_fixed(Injury.location, ", ", 4)[ ,2],
            body_3 = str_split_fixed(Injury.location, ", ", 4)[ ,3],
            body_4 = str_split_fixed(Injury.location, ", ", 4)[ ,4],
-           age_range = case_when(Victim.age <= 10 ~ "0-10", 
+           age_range = case_when(Victim.age <= 10 ~ "0-10",
                                  (10 < Victim.age) & (Victim.age <= 20)  ~ "11-20",
                                  (20 < Victim.age) & (Victim.age <= 30)  ~ "21-30",
                                  (30 < Victim.age) & (Victim.age <= 40)  ~ "31-40",
@@ -734,47 +734,47 @@ renderPlot({
                                  (50 < Victim.age) & (Victim.age <= 60)  ~ "51-60",
                                  (60 < Victim.age) & (Victim.age <= 70)  ~ "61-70",
                                  (70 < Victim.age) & (Victim.age <= 75)  ~ "71-75",
-                                 Victim.age == " "                ~ NA)) 
-  
+                                 Victim.age == " "                ~ NA))
+
   if (input$gender_EL == "all") { #if it's all genders
 
   } else { #if it's a specific gender
     body_injury <- body_injury %>%
       filter(Victim.gender == input$gender_EL)
   }
-  
-  body_1 <- body_injury %>% 
-    group_by(body_1, age_range) %>% 
-    rename(body = body_1) %>% 
-    filter(body != "") %>% 
+
+  body_1 <- body_injury %>%
+    group_by(body_1, age_range) %>%
+    rename(body = body_1) %>%
+    filter(body != "") %>%
     summarize(sum = n())
-  
-  body_2 <- body_injury %>% 
-    group_by(body_2, age_range) %>% 
-    rename(body = body_2) %>% 
-    filter(body != "") %>% 
+
+  body_2 <- body_injury %>%
+    group_by(body_2, age_range) %>%
+    rename(body = body_2) %>%
+    filter(body != "") %>%
     summarize(sum = n())
-  
-  body_3 <- body_injury %>% 
-    group_by(body_3, age_range) %>% 
-    rename(body = body_3) %>% 
-    filter(body != "") %>% 
+
+  body_3 <- body_injury %>%
+    group_by(body_3, age_range) %>%
+    rename(body = body_3) %>%
+    filter(body != "") %>%
     summarize(sum = n())
-  
-  body_4 <- body_injury %>% 
-    group_by(body_4, age_range) %>% 
-    rename(body = body_4) %>% 
-    filter(body != "") %>% 
+
+  body_4 <- body_injury %>%
+    group_by(body_4, age_range) %>%
+    rename(body = body_4) %>%
+    filter(body != "") %>%
     summarize(sum = n())
-  
+
   body_12 <- rbind(body_1, body_2)
   body_123 <- rbind(body_12, body_3)
   body_1234 <- rbind(body_123, body_4)
-  
-  body_total <- body_1234 %>% 
+
+  body_total <- body_1234 %>%
     group_by(body, age_range) %>%
     mutate(body = ifelse(body == "left leg", "leg", body),
-           body = ifelse(body == "left foot", "foot", body)) %>% 
+           body = ifelse(body == "left foot", "foot", body)) %>%
     mutate(overall = case_when(body == "ankle" ~ "Foot",
                                body == "calf" ~ "Leg",
                                body == "hand" ~ "Arm",
@@ -792,15 +792,15 @@ renderPlot({
                                body == "pelvic region" ~ "Pelvic region",
                                body == "shoulder" ~ "Shoulder",
                                body == "thigh" ~ "Leg"),
-           body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>% 
-    filter(overall != "" ) %>% 
-    group_by(overall, age_range) %>% 
-    summarize(Number_injury = sum(sum)) %>% 
-    na.omit() %>% 
+           body = ifelse(grepl("other", body, fixed = TRUE), "", body)) %>%
+    filter(overall != "" ) %>%
+    group_by(overall, age_range) %>%
+    summarize(Number_injury = sum(sum)) %>%
+    na.omit() %>%
     filter(age_range == input$age_EL)
-  
-  
-  body_polygon <- bdgramr(data = data, model = "basic_male") %>% 
+
+
+  body_polygon <- bdgramr(data = data, model = "basic_male") %>%
     mutate(body = case_when(Muscle == "Head" ~ "Head",
                             Muscle == "Pectoral" ~ "Shoulder",
                             Muscle == "Intercostal" ~ "Torso",
@@ -819,7 +819,7 @@ renderPlot({
                             Muscle == "Upper_Back" ~ "Torso",
                             Muscle == "Gluteus_Maximus" ~ "Pelvic region",
                             Muscle == "Calf" ~ "Leg"))
-  
+
   body_combine <- full_join(body_polygon, body_total, by = c("body" = "overall"), relationship = "many-to-one")
 
 
@@ -835,7 +835,7 @@ ggplot(data = body_combine, aes(x,y, group = Id)) +
       axis.text.y=element_blank(),
       axis.ticks=element_blank(),
       axis.title.x=element_blank(),
-      axis.title.y=element_blank(), 
+      axis.title.y=element_blank(),
       panel.grid.major=element_blank(),
       panel.grid.minor=element_blank())
 
@@ -1331,62 +1331,6 @@ blurb_timeline <- read.csv("timeline blurb.csv")
 
 # cleaning the data
 
-#adding in means, renaming and recategorizing, 
-shark_attacks_fixed <- shark_attacks %>%
-  filter(is.na(UIN) != T) %>% #removing the empty rows
-  mutate(Victim.injury = case_when(Victim.injury == "fatal" ~ "Fatal",
-                                   Victim.injury == "injured" ~ "Injured",
-                                   Victim.injury == "Injured" ~ "Injured",
-                                   Victim.injury == "uninjured" ~ "Uninjured")) %>%
-  mutate(Provoked.unprovoked = case_when(Provoked.unprovoked == "provoked" ~ "Provoked",
-                                   Provoked.unprovoked == "unprovoked" ~ "Unprovoked")) %>%
-  mutate(Victim.gender = case_when(Victim.gender == "female" ~ "Female",
-                                   Victim.gender == "male" ~ "Male")) %>%
-  mutate(Injury.severity = case_when(Injury.severity == "abrasion" ~ "Abrasion", 
-                                     Injury.severity == "major lacerations" ~ "Major Lacerations", 
-                                     Injury.severity == "minor lacerations" ~ "Minor Lacerations", 
-                                     Injury.severity == "other: teeth marks" ~ "Other: Teeth Marks", 
-                                     Injury.severity == "punctures" ~ "Punctures", 
-                                     Injury.severity == "surface wound" ~ "Surface Wound")) %>%
-  mutate(Site.category = case_when(Site.category == "coastal" ~ "Coastal",
-                                   Site.category == "Coastal" ~ "Coastal",
-                                   Site.category == "estuary/harbour" ~ "Estuary/Harbour", 
-                                   Site.category == "island open ocean" ~ "Island Open Ocean", 
-                                   Site.category == "ocean/pelagic" ~ "Ocean/Pelagic",
-                                   Site.category == "other: fish farm" ~ "Other",
-                                   Site.category == "river" ~ "River",
-                                   is.na(Site.category) ~ "Other")) %>%
-  mutate(Site.category = as.factor(Site.category)) %>%
-  filter(Incident.year != "1791") %>%
-  mutate(Victim.activity = case_when(Victim.activity == "boarding" ~ "Boarding",
-                                   Victim.activity == "diving" ~ "Diving",
-                                   Victim.activity == "diving, collecting" ~ "Diving",
-                                   Victim.activity == "fishing" ~ "Fishing",
-                                   Victim.activity == "motorised boating" ~ "Motorised Boating",
-                                   Victim.activity == "other: standing in water" ~ "Standing in Water",
-                                   Victim.activity == "other: hull scraping" ~ "Other",
-                                   Victim.activity == "other: jetskiing; swimming" ~ "Other",
-                                   Victim.activity == "other:floating" ~ "Swimming",
-                                   Victim.activity == "wing foiler" ~ "Other",
-                                   Victim.activity == "snorkeling" ~ "Snorkeling", 
-                                   Victim.activity == "surfing" ~ "Boarding",
-                                   Victim.activity == "snorkelling" ~ "Snorkeling",
-                                   Victim.activity == "spearfishing" ~ "Spearfishing",
-                                   Victim.activity == "paddleboarding" ~ "Boarding",
-                                   Victim.activity == "swimming" ~ "Swimming",
-                                   Victim.activity == "unmotorised boating" ~ "Boating",
-                                   Victim.activity == "" ~ NA)) %>%
-  
-  filter(Incident.year != "1791") %>%
-  group_by(Incident.year) %>%
-   #creating mean columns
-  mutate(Victim.age.mean = mean(Victim.age)) %>%
-  #creating date groupings
-  mutate(Year = case_when((Incident.year > 1800 & Incident.year <= 1850) ~ "1800-1850", 
-                          (Incident.year > 1850 & Incident.year <= 1900) ~ "1850-1900",
-                          (Incident.year > 1900 & Incident.year <= 1950) ~ "1900-1950",
-                          (Incident.year > 1950 & Incident.year <= 2000) ~ "1950-2000",
-                          (Incident.year > 2000 & Incident.year <= 2024) ~ "2000-2024")) 
 
 #counting the number of sharks every 50 years
 shark_attacks_fixed <- shark_attacks_fixed %>%
@@ -1398,14 +1342,14 @@ shark_attacks_fixed <- shark_attacks_fixed %>%
 ```{r}
 #creating a dataframe for timeline data
 shark_attacks_timeline <- shark_attacks_fixed %>%
-  mutate(Victim.age = as.ts(Victim.age)) %>% 
-  mutate(Incident.month = as.character(Incident.month)) %>% 
+  mutate(Victim.age = as.ts(Victim.age)) %>%
+  mutate(Incident.month = as.character(Incident.month)) %>%
   mutate(Incident.year = as.character(Incident.year)) %>%
   mutate(Incident.year = make_date(year = Incident.year))
   # unite("Incident.month_year", Incident.month, Incident.year, sep = "/", remove = F) %>% #remove = F, na.rm = T
   # mutate(Incident.month_year = paste0("01/", Incident.month_year),
   #        Incident.month_year = as.Date(Incident.month_year, format = "%d/%m/%Y"))
-  # 
+  #
 #start and stop times
 
 start_time <- as.Date("1800-01-01")
@@ -1431,24 +1375,24 @@ shark_attacks_count <- shark_attacks_timeline %>%
 shark_attacks_proportions_Victim.injury <- shark_attacks_fixed %>%  #  Start with the cereal data.frame
   filter(Victim.injury != "") %>%
   group_by(Year, Victim.injury) %>%  #  group by the year variable
-  summarise(count_Victim.injury = n()) %>% 
+  summarise(count_Victim.injury = n()) %>%
   mutate(total_Victim.injury = sum(count_Victim.injury),  #  compute total number of observations
          proportion_Victim.injury = count_Victim.injury / total_Victim.injury,  #  compute proportions
          std_error_Victim.injury = sqrt(proportion_Victim.injury * (1-proportion_Victim.injury) / total_Victim.injury),  #  compute standard error of each proportion
          lower_Victim.injury = proportion_Victim.injury - 1.96 * std_error_Victim.injury,  #  compute CI lower bound
-         upper_Victim.injury = proportion_Victim.injury + 1.96 * std_error_Victim.injury) 
-  
+         upper_Victim.injury = proportion_Victim.injury + 1.96 * std_error_Victim.injury)
+
 
 #Site.category
 shark_attacks_proportions_Site.category <- shark_attacks_fixed %>%  #  Start with the cereal data.frame
   filter(Site.category != "") %>%
   group_by(Year, Site.category) %>%  #  group by the year variable
-  summarise(count_Site.category = n()) %>%  
-  mutate(total_Site.category = sum(count_Site.category),  
-         proportion_Site.category = count_Site.category / total_Site.category,  
-         std_error_Site.category = sqrt(proportion_Site.category * (1-proportion_Site.category) / total_Site.category),  
-         lower_Site.category = proportion_Site.category - 1.96 * std_error_Site.category,  
-         upper_Site.category = proportion_Site.category + 1.96 * std_error_Site.category) 
+  summarise(count_Site.category = n()) %>%
+  mutate(total_Site.category = sum(count_Site.category),
+         proportion_Site.category = count_Site.category / total_Site.category,
+         std_error_Site.category = sqrt(proportion_Site.category * (1-proportion_Site.category) / total_Site.category),
+         lower_Site.category = proportion_Site.category - 1.96 * std_error_Site.category,
+         upper_Site.category = proportion_Site.category + 1.96 * std_error_Site.category)
 
 
 
@@ -1456,48 +1400,48 @@ shark_attacks_proportions_Site.category <- shark_attacks_fixed %>%  #  Start wit
 shark_attacks_proportions_Provoked.unprovoked <- shark_attacks_fixed %>%  #  Start with the cereal data.frame
   filter(Provoked.unprovoked != "") %>%
   group_by(Year, Provoked.unprovoked) %>%  #  group by the year variable
-  summarise(count_Provoked.unprovoked = n()) %>%  
-  mutate(total_Provoked.unprovoked = sum(count_Provoked.unprovoked),  
-         proportion_Provoked.unprovoked = count_Provoked.unprovoked / total_Provoked.unprovoked, 
-         std_error_Provoked.unprovoked = sqrt(proportion_Provoked.unprovoked * (1-proportion_Provoked.unprovoked) / total_Provoked.unprovoked),  
-         lower_Provoked.unprovoked = proportion_Provoked.unprovoked - 1.96 * std_error_Provoked.unprovoked,  
+  summarise(count_Provoked.unprovoked = n()) %>%
+  mutate(total_Provoked.unprovoked = sum(count_Provoked.unprovoked),
+         proportion_Provoked.unprovoked = count_Provoked.unprovoked / total_Provoked.unprovoked,
+         std_error_Provoked.unprovoked = sqrt(proportion_Provoked.unprovoked * (1-proportion_Provoked.unprovoked) / total_Provoked.unprovoked),
+         lower_Provoked.unprovoked = proportion_Provoked.unprovoked - 1.96 * std_error_Provoked.unprovoked,
          upper_Provoked.unprovoked = proportion_Provoked.unprovoked + 1.96 * std_error_Provoked.unprovoked)
-  
+
 
 #Victim.activity
 shark_attacks_proportions_Victim.activity <- shark_attacks_fixed %>%  #  Start with the cereal data.frame
   filter(Victim.activity != "") %>%
   group_by(Year, Victim.activity) %>%  #  group by the year variable
-  summarise(count_Victim.activity = n()) %>%  
-  mutate(total_Victim.activity = sum(count_Victim.activity),  
-         proportion_Victim.activity = count_Victim.activity / total_Victim.activity,  
-         std_error_Victim.activity = sqrt(proportion_Victim.activity * (1-proportion_Victim.activity) / total_Victim.activity),  
+  summarise(count_Victim.activity = n()) %>%
+  mutate(total_Victim.activity = sum(count_Victim.activity),
+         proportion_Victim.activity = count_Victim.activity / total_Victim.activity,
+         std_error_Victim.activity = sqrt(proportion_Victim.activity * (1-proportion_Victim.activity) / total_Victim.activity),
          lower_Victim.activity = proportion_Victim.activity - 1.96 * std_error_Victim.activity,
          upper_Victim.activity = proportion_Victim.activity + 1.96 * std_error_Victim.activity)
 
 
-#Victim.gender 
+#Victim.gender
 shark_attacks_proportions_Victim.gender <- shark_attacks_fixed %>% #  Start with the data.frame
   filter(Victim.gender != "") %>%
   group_by(Year, Victim.gender) %>%  #  group by the year variable
-  summarise(count_Victim.gender = n()) %>%    
-  mutate(total_Victim.gender = sum(count_Victim.gender),  
-         proportion_Victim.gender = count_Victim.gender / total_Victim.gender,  
-         std_error_Victim.gender = sqrt(proportion_Victim.gender * (1-proportion_Victim.gender) / total_Victim.gender), 
-         lower_Victim.gender = proportion_Victim.gender - 1.96 * std_error_Victim.gender,  
+  summarise(count_Victim.gender = n()) %>%
+  mutate(total_Victim.gender = sum(count_Victim.gender),
+         proportion_Victim.gender = count_Victim.gender / total_Victim.gender,
+         std_error_Victim.gender = sqrt(proportion_Victim.gender * (1-proportion_Victim.gender) / total_Victim.gender),
+         lower_Victim.gender = proportion_Victim.gender - 1.96 * std_error_Victim.gender,
          upper_Victim.gender = proportion_Victim.gender + 1.96 * std_error_Victim.gender)
-  
-  
+
+
 #Injury.severity
 shark_attacks_proportions_Injury.severity <- shark_attacks_fixed %>%  #Start with the cereal data.frame
   filter(Injury.severity != "") %>%
   group_by(Year, Injury.severity) %>%  #  group by the year variable
-  summarise(count_Injury.severity = n()) %>%  
-  mutate(total_Injury.severity = sum(count_Injury.severity),  
-         proportion_Injury.severity = count_Injury.severity / total_Injury.severity,  
-         std_error_Injury.severity = sqrt(proportion_Injury.severity * (1-proportion_Injury.severity) / total_Injury.severity), 
-         lower_Injury.severity = proportion_Injury.severity - 1.96 * std_error_Injury.severity,  
-         upper_Injury.severity = proportion_Injury.severity + 1.96 * std_error_Injury.severity) 
+  summarise(count_Injury.severity = n()) %>%
+  mutate(total_Injury.severity = sum(count_Injury.severity),
+         proportion_Injury.severity = count_Injury.severity / total_Injury.severity,
+         std_error_Injury.severity = sqrt(proportion_Injury.severity * (1-proportion_Injury.severity) / total_Injury.severity),
+         lower_Injury.severity = proportion_Injury.severity - 1.96 * std_error_Injury.severity,
+         upper_Injury.severity = proportion_Injury.severity + 1.96 * std_error_Injury.severity)
 
 
 
@@ -1513,7 +1457,7 @@ Row {data-height=100}
 ```{r}
  renderTable({
     blurb_timeline %>%
-    filter(name == input$response_var) %>% 
+    filter(name == input$response_var) %>%
     select(Takeaways)
 
 })
@@ -1521,7 +1465,7 @@ Row {data-height=100}
 
 
 
-Row 
+Row
 -----------------------------------------------------------------------
 
 ### Shark Attacks over Time
@@ -1553,9 +1497,9 @@ barchart <- c("Victim.injury", "Site.category", "Provoked.unprovoked", "Victim.a
 
 renderPlotly({
   if(input$response_var %in% barchart){
-    
+
     dataframe_barchart_ordered <- dataframe_barchart() %>%
-      mutate(!!sym(input$response_var) := factor(!!sym(input$response_var), 
+      mutate(!!sym(input$response_var) := factor(!!sym(input$response_var),
         levels = if (input$response_var == "Victim.injury") {
           c("Fatal", "Injured", "Uninjured")
         } else if (input$response_var == "Site.category") {
@@ -1572,12 +1516,12 @@ renderPlotly({
           NULL
         }
       ))
-    barchart_plot <- ggplot(dataframe_barchart_ordered, 
+    barchart_plot <- ggplot(dataframe_barchart_ordered,
                             aes_string(y = ifelse(input$prop_count == "prop", paste0("proportion_", input$response_var), ifelse(input$prop_count == "count", paste0("count_", input$response_var), NULL)),  fill = input$response_var, color = input$response_var)) +
       geom_line(aes_string(x = "Year", group = input$response_var, color = input$response_var))+
       geom_point(aes(x = Year))+
          labs(x = "Years",
-              y = ifelse(input$prop_count == "prop", "Proportion","Count"), 
+              y = ifelse(input$prop_count == "prop", "Proportion","Count"),
               title = list(text = paste0(paste0(paste0(ifelse(input$prop_count == "prop", "Proportion", "Count"),
                 paste0(ifelse(input$response_var == "Victim.injury", " of Victim Injury Type Over Time", ifelse(input$response_var == "Site.category", " of Shark Attack Site Categories Over Time", ifelse(input$response_var == "Provoked.unprovoked", " of Provoked vs. Unprovoked Shark Attacks Over Time", ifelse(input$response_var == "Victim.activity", " of Victim Activities Over Time", ifelse(input$response_var == "Injury.severity", " of Injurity Severity Over Time", ifelse(input$response_var == "Victim.gender", " of Victim Genders Over Time", ""))))))))), '<br>',
                                     '<sup>',
@@ -1598,16 +1542,16 @@ renderPlotly({
      # Add error bars if selected
   if (input$error_bar & input$prop_count == "prop") {
     barchart_plot <- barchart_plot +
-      geom_errorbar(data = dataframe_barchart_ordered, 
-                    aes_string(x = "Year", 
-                               ymin = paste0("lower_", input$response_var), 
-                               ymax = paste0("upper_", input$response_var), 
-                               color =  input$response_var), 
+      geom_errorbar(data = dataframe_barchart_ordered,
+                    aes_string(x = "Year",
+                               ymin = paste0("lower_", input$response_var),
+                               ymax = paste0("upper_", input$response_var),
+                               color =  input$response_var),
                     position = position_dodge(preserve = "single")) + # position_dodge(0.9)) #position = "dodge") #position_dodge(preserve = "single")
           geom_point(aes(x = Year))
-    
-  } 
-    
+
+  }
+
 # Define tooltip based on the response variable
     tooltip_text <- ""
 
@@ -1638,16 +1582,16 @@ renderPlotly({
 
     # Add tooltip_text to the plot
     barchart_plot <- barchart_plot + aes(text = tooltip_text)
-    
+
     return(ggplotly(barchart_plot, tooltip = "text"))
 
-    
+
   } else if (input$response_var %in% lineplot) {
     lineplot_plot <- ggplot(data = dataframe_time(),
                             aes_string(x = "Incident.year", y = input$response_var)) +
         geom_point(alpha = 0.6, size = 0.8) +
         geom_smooth(method = "loess", alpha = 0.2, color = alpha("blue", 0.3)) +
-        labs(x = "Date", 
+        labs(x = "Date",
              y = ifelse(input$response_var == "attack_count", "Number of Attacks", "Victim Age"),
              title = ifelse(input$response_var ==  "Victim.age", "Victim Age per Attack during Shark Attacks between 1800-2024", ifelse(input$response_var == "attack_count", "Number of Australian Shark Attacks per Year between 1800-2024", ""))) +
         #     scale_x_continuous(
@@ -1666,18 +1610,18 @@ renderPlotly({
       # coord_cartesian(xlim = as.Date(c("1800-01-01", "2024-01-01"))) +
           # coord_cartesian(xlim = c(as_date(1800, 2024))) +
   # coord_cartesian(xlim=c(as_date("1800-01-01","2024-03-01")))+
-    
-    
+
+
 #     start_time <- as.Date("1800-01-01")
 # end_time <- as.Date("2024-03-01")
-#       xlim(c("1800", "2024")) + 
+#       xlim(c("1800", "2024")) +
         #stat_rollapplyr(width = 50, align = "right", linewidth = 1, color = "red") +
         theme(axis.text.x = element_text(angle = 45, vjust = 0.8)) +
       interactive_theme
-    
+
     # # Define tooltip based on the response variable
     # tooltip_text_date <- ""
-    # 
+    #
     # if (input$response_var == "attack_count") {
     #   tooltip_text_date = paste0("<br>Attack Count: ", shark_attacks_count$attack_count,
     #                                                   "<br>Year: ", shark_attacks_count$Incident.year)
@@ -1685,19 +1629,19 @@ renderPlotly({
     #    tooltip_text_date = paste0("<br>Victim Age: ", shark_attacks_timeline$Victim.age,
     #                                                   "<br>Year: ", shark_attacks_timeline$Incident.year)
     # }
-    # 
-    # 
+    #
+    #
     #     # Add tooltip_text to the plot
-    # lineplot_plot <- lineplot_plot + aes(text = tooltip_text_date) 
-    # 
+    # lineplot_plot <- lineplot_plot + aes(text = tooltip_text_date)
+    #
     # return(ggplotly(lineplot_plot, tooltip = "text"))
 
 
     return(ggplotly(lineplot_plot))
-  
-   
+
+
   }
-  
+
 })
 
 
@@ -1715,11 +1659,11 @@ Column {.sidebar}
 
 #widgets for the barcharts
 
-radioButtons("response_var", label = h3("Attack Characteristic:"), 
+radioButtons("response_var", label = h3("Attack Characteristic:"),
     choices = list("Number of Attacks" = "attack_count", "Victim Age" = "Victim.age", "Provoked?" = "Provoked.unprovoked", "Victim Gender" = "Victim.gender",
                    "Victim Injury" = "Victim.injury", "Injury Severity" = "Injury.severity", "Site Category" = "Site.category", "Victim Activity" = "Victim.activity"), selected = "Victim.injury")
 
-radioButtons("prop_count", label = h3("Proportions or Count:"), 
+radioButtons("prop_count", label = h3("Proportions or Count:"),
                    choices = list("Proportion" = "prop", "Count" = "count"))
 
 checkboxInput("error_bar", label = h4("Include Error Bar"))
