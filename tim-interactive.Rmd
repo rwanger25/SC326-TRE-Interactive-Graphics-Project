@@ -76,7 +76,15 @@ fluidPage(
   fluidRow(
     column(12,
       style = "text-align: center; padding: 20px",
-      tags$img(src = file.path(paste("white shark .jpg")), height = "175px")
+      renderImage({
+        list(
+          src = file.path(paste("shark.jpg")),
+          contentType = "image/jpeg",
+          width = 350,
+          alt = "Illustration of a shark"
+        )
+      }),
+      p("Photo © studiogstock, Freepik")
     )
   )
 )
